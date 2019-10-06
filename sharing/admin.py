@@ -1,0 +1,45 @@
+from django.contrib import admin
+
+# Register your models here.
+from .models import *
+
+class ChoiceInline(admin.StackedInline):
+    model = Images
+    extra = 2
+
+class PaymentsInline(admin.StackedInline):
+    model = Payments
+    extra = 0
+
+class AccessInline(admin.StackedInline):
+    model = Access
+    extra = 0
+
+class QuestionAdmin(admin.ModelAdmin):
+    inlines = [ChoiceInline]
+    list_display = ('street','district','city','status')
+    list_filter = ['district']
+    search_fields = ['street']
+
+class RentsExtend(admin.ModelAdmin):
+    inlines = [PaymentsInline,AccessInline]
+    list_display = ('flat','start','end','status')
+    list_filter = ['start','end']
+    #search_fields = ['street']
+
+class PaymentsAdmin(admin.ModelAdmin):
+    
+    list_display = ('rentor','renta','price','status')
+    list_filter = ['status']
+
+admin.site.register(Flats, QuestionAdmin)
+admin.site.register(Countries)
+admin.site.register(Cities)
+admin.site.register(Districts)
+admin.site.register(Images)
+admin.site.register(Workers)
+admin.site.register(Partners)
+admin.site.register(Payments)
+admin.site.register(Rents,RentsExtend)
+admin.site.register(Access)
+admin.site.register(UsersDocuments)

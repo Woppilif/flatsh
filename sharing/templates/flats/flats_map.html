@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load l10n %}
+
+{% load static %}
+
+{% block javascript %}
+  <script src="{% static 'flats/js/flats.js' %}"></script>
+  <script>
+      var map;
+      DG.then(function() {
+          
+    
+          map = DG.map('map', {
+              center: [55.797602, 49.099868],
+              zoom: 13,
+              fullscreenControl: false,
+              zoomControl: false
+          });
+          {%for flat in flats%}
+            DG.marker([{{flat.latitude|unlocalize}}, {{flat.longitude|unlocalize}}])
+                          .on('click', function () {
+                            clickOnFlat({{flat.pk}});
+            }).addTo(map);
+                        
+          {%endfor%}
+          //marker.bindPopup().openPopup();
+    
+          map.locate({setView: true, watch: false})
+              .on('locationfound', function(e) {
+                  DG.marker([e.latitude, e.longitude]).addTo(map).bindPopup('Вы находитесь здесь');
+              })
+              .on('locationerror', function(e) {
+                  DG.popup()
+                    .setLatLng(map.getCenter())
+                    .setContent('Доступ к определению местоположения отключён')
+                    .openOn(map);
+              });
+          
+          
+          DG.control.location({position: 'bottomright'}).addTo(map);
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+<div id="map"  class="w-100 p-3" style="width:500px; height:380px"></div>
+<div class="card">
+  <div class="card-body" id='block'>
+  {% if renta %}
+    {{renta.flat}}</br>
+    
+    {{renta.start}}</br>
+    {{renta.end}}</br>
+    
+    
+    {%if payment.payment_type == 'D' and payment.status == False%}
+    <a href="{% url 'sharing:flatPayDeposit' renta.id %}">Внести депозит</a>
+    {%elif payment.payment_type == 'D' and payment.status == True%}
+    <a href="{% url 'sharing:flatPayRenta' renta.id %}">Оплатить аренду</a>
+      {%if renta.AccessObj %}
+        <a href="{% url 'sharing:access' renta.AccessObj.id %}">Осмотреть квартиру {{renta.AccessObj.timeRemaining}}</a>
+      {%endif%}
+    <a href="{% url 'sharing:rentCancel' renta.id %}">Отказаться</a>
+    {%elif payment.payment_type == 'F' and payment.status == True%}
+    <a href="{% url 'sharing:access' renta.AccessObj.id %}">Открыть дверь {{renta.AccessObj.timeRemaining}}</a>
+    {%endif%}
+  
+    {% if renta.deposit is True and payment is None %}
+    <a href="{% url 'sharing:flatPayDeposit' renta.id %}">Внести депозит</a>
+    {%elif renta.deposit is False and payment is None%}
+    <a href="{% url 'sharing:flatPayRenta' renta.id %}">Оплатить аренду</a>
+    {%endif%}
+    
+
+  {%else%}
+  <button type="button" class="btn btn-primary flats-filter" data-url="{% url 'sharing:flats_filter' %}">Фильтры</button>
+  <button type="button" class="btn btn-secondary">Найти адрес</button>
+  {%endif%}
+  
+  </div>
+</div>
+
+
+<div class="card">
+  <div class="card-body center-block" id='flat-info'>
+      {% include 'flats/includes/partial_book_list.html' %}
+  </div>
+</div>
+
+  <div class="modal fade" id="modal-book">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% include "django/forms/widgets/input.html" %}
+
+<script>
+    var openDoor = function (hello=1) {
+    //var btn = $(this);      
+    console.log(hello);
+    $.ajax({
+
+      url: '/projects/access/',
+      type: 'get',
+      dataType: 'json',
+      
+      success: function (data) {
+        if (data.form_is_valid) {
+            console.log(new String(data.time));
+          return data
+        }
+      }
+    });
+    return false;
+  };
+
+  $(function () {
+    $("input[name='{{ widget.name }}']").datetimepicker({
+      format: 'Y-m-d H:i',
+      formatTime:'H:i',
+      formatDate:'Y-m-d',
+      allowTimes:[
+        "{{ widget.attrs.allowTimes }}"
+      ],
+      
+      //allowDates:['2019-10-07'],
+      dayOfWeekStart : 1,
+      lang:'ru',
+      disabledDates: "{{ widget.attrs.disabledDates }}",
+      minDate: "{{ widget.attrs.minDate }}",
+      //allowTimes: "{{ widget.attrs.allowTimes }}",
+      defaultTime: "{{ widget.attrs.allowTimes }}",
+      //defaultDate:new Date()
+
+
+    });
+
+    
+  });
+
+  
+
+</script>

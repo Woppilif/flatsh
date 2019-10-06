@@ -1,0 +1,14 @@
+
+{{project_list}}
+
+{%if project_list.AccessObj %}
+    <input type="button"
+                class="btn btn-secondary openDoor"
+                data-url="{% url 'projects:access'  %}" value="Открыть дверь {{project_list.AccessObj.timeRemaining}}">
+{%endif%}
+
+{%if project_list.paid is False %}
+<a href="{% url 'projects:flatPay' project_list.id %}">Оплатить аренду {{project_list.getPrice}}</a>
+
+<a href="{% url 'projects:rentCancel' project_list.id %}">Отказаться</a>
+{%endif%}

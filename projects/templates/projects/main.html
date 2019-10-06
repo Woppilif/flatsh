@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{{ form.date }}
+{% load static %}
+
+{% block javascript %}
+  <script src="{% static 'projects/js/projects.js' %}"></script>
+  
+  <script src="{% static 'projects/js/jquery.datetimepicker.full.min.js' %}"></script>
+
+{% endblock %}
+
+{% block content %}
+    <div class="card mw-100 mh-100" id='map-block' >
+        {% include 'projects/flats/map.html' %}
+    </div>
+    <div class="card ">
+        <div class="card-body">
+            <button type="button" class="btn btn-primary">Фильтры</button>
+            <input type="button"
+                    class="btn btn-secondary reFresh"
+                    data-url="{% url 'projects:project_list' 1 %}" value="Список">
+        </div>
+        <div class="card" id='rentCard'>
+                {% include 'projects/flats/rents_part.html' %}
+            </div>
+    </div>
+    
+
+    <div class="modal fade" id="modal-book">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

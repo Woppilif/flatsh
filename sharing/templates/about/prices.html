@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Цены{% endblock %}
+{% block content %}
+
+
+<div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+    
+        <div class="bg-light mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+      <div class="my-3 py-3">
+          <h1 class="card-title pricing-card-title text-black-50">LITE</h1>
+          <h1 class="card-title pricing-card-title">499₽ <small class="text-muted">/ месяц</small></h1>
+          <ul class="list-unstyled mt-3 mb-4">
+            <li>1 бот</li>
+            <li>1 проект</li>
+            <li>до 5 сотрудников</li>
+            <li>Стандартная авторизация пользователей</li>
+
+            <li><a href="{%url 'abot:faq'%}">Подробнее о предоставляемых услугах</a></li>
+            <li><a href="{%url 'abot:products'%}">Подключить</a></li>
+          </ul>
+      </div>
+      
+    </div>
+    <div class="bg-dark mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center text-white overflow-hidden">
+      <div class="my-3 p-3">
+          <h1 class="card-title pricing-card-title text-white-50">PRO</h1>
+          <h1 class="card-title pricing-card-title">999₽ <small class="text-muted">/ месяц</small></h1>
+          <ul class="list-unstyled mt-3 mb-4">
+            <li></li>
+            <li>1 бот</li>
+            <li>3 проекта</li>
+            <li>до 10 сотрудников</li>
+            <li>Стандартная авторизация пользователей</li> 
+            <li> Авторизация пользователей по заданной локации</li>
+            <li><a href="{%url 'abot:faq'%}">Подробнее о предоставляемых услугах</a></li>
+            <li><a href="{%url 'abot:products'%}">Подключить</a></li>
+          </ul>
+      </div>
+      
+    </div>
+  </div>
+
+
+{% endblock %}

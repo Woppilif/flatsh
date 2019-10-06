@@ -1,0 +1,31 @@
+{% for item in project_list %}
+  <tr>
+    <td>
+        
+      
+    </td>
+    <td>{{ item.bot.name }}</td>
+    <td>{{ item.customer }}</td>
+    <td>{{ item.start }} \ {{ item.end }}</td>
+
+    <td>{{ item.flats.price }}</td>
+    
+    <td>
+
+      <button type="button"
+              class="btn btn-warning btn-sm js-update-book"
+              data-url="{% url 'projects:project_update' item.id %}"> 
+        <span class="glyphicon glyphicon-pencil"></span> Редактировать
+      </button>
+      <button type="button"
+              class="btn btn-danger btn-sm js-delete-book"
+              data-url="{% url 'projects:project_delete' item.id %}">
+        <span class="glyphicon glyphicon-trash"></span> Удалить
+      </button>
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="8" class="text-center bg-warning">У вас еще нет проектов</td>
+  </tr>
+{% endfor %}
