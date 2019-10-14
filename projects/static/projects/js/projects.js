@@ -74,6 +74,7 @@ $(function () {
         $("#modal-book").modal("show");
       },
       success: function (data) {
+        //$("#map-block").html(data.html_form);
         $("#modal-book .modal-content").html(data.html_form);
       }
     });

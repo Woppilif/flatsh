@@ -1,12 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from sharing.forms import UserDocumentsForm
+from .forms import UserDocumentsForm
 from yandex_checkout import Payment,Configuration 
 import uuid
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm,PasswordChangeForm
 from django.contrib.auth import authenticate, login#
 from django.contrib import messages
-from sharing.models import Payments
+from sharing.models import Payments, Rents
 from django.utils import timezone
 Configuration.account_id = 591310
 
@@ -14,6 +14,22 @@ Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
 
 
 # Create your views here.
+@login_required(login_url='/accounts/login/')
+def UserSettingsMenu(request):
+    rents = Rents.objects.filter(rentor=request.user)
+    payments = Payments.objects.filter(rentor=request.user)
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user,request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Ваш пароль был успешно обновлен!')
+            #create_log(request.user,'Обновление пароля')
+            return redirect('user:settings')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'user/settings.html', {'form': form,'rents':rents,'payments':payments})
+
+
 @login_required(login_url='/accounts/login/')
 def UserDocuments(request):
     if request.method == 'POST':

@@ -9,6 +9,7 @@ import uuid
 from yandex_checkout import Payment,Configuration 
 from datetime import timedelta
 from django.utils import timezone
+from api.views import openDoorAPI
 Configuration.account_id = 591310
 
 Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
@@ -60,11 +61,13 @@ def project_list(request,ltype):
 def project_flat(request,pk,ltype='map'):
     data = dict()
     flat = Flats.objects.get(pk=pk) #status__exact=None
+    project_list = currentRentaDef(request.user)
     images = Images.objects.filter(flat=flat)
     data['html_book_list'] = render_to_string('projects/flats/flat.html', {
         'flat':flat,
         'back':ltype,
-        'images':images
+        'images':images,
+        'project_list':project_list
     })
     data['form_is_valid'] = True
     return JsonResponse(data)
@@ -79,7 +82,11 @@ def save_book_form(request, form, template_name):
     if request.method == 'POST':
         if form.is_valid():
             ff = form.save(commit=False)
-            Rents.renta.createRent(flat=form.current_flat,user=request.user,start=ff.start,end=ff.end)
+            try:
+                obj = Rents.renta.createRent(flat=form.current_flat,user=request.user,start=ff.start,end=ff.end)
+                print(obj)
+            except:
+                print(False)
             '''
             project = form.save(commit=False) #
             project.rentor = request.user
@@ -117,6 +124,8 @@ def project_refresh(request):
 '''
 @login_required(login_url='/accounts/login/')
 def project_create(request,pk):
+    if currentRentaDef(request.user) != '':
+        return redirect("projects:list")
     flat = get_object_or_404(Flats, pk=pk)
     if request.method == 'POST':
         form = RentForm(data=request.POST,current_flat=flat)
@@ -225,55 +234,6 @@ def flatPay(request,pk):
         )
     return redirect('projects:list')
 
-'''
-@login_required(login_url='/accounts/login/')
-def OnPaymentCallback(request,pk):
-    user_payments = get_object_or_404(Payments, pk=pk,rentor=request.user,status=False)
-    payment = Payment.find_one(user_payments.payment_id)
-    print(payment.status)
-    if payment.status == 'waiting_for_capture' and user_payments.payment_type=='D':
-        user_payments.payment_status = payment.status
-        user_payments.created_at = payment.created_at
-        user_payments.expires_at = payment.expires_at
-        user_payments.captured_at = payment.captured_at
-        user_payments.status = True
-        user_payments.save()
-        acc = Access.objects.create(
-            user = request.user,
-            renta = user_payments.renta
-        )
-        print('Yeah its D')
-    elif payment.status == 'waiting_for_capture' and user_payments.payment_type=='F':
-        idempotence_key = str(uuid.uuid4())
-        response = Payment.capture(
-            user_payments.payment_id,
-            {
-                "amount": {
-                "value": user_payments.price/2,
-                "currency": "RUB"
-                }
-            },
-            idempotence_key
-            )
-
-        user_payments.payment_status = response.status
-        user_payments.created_at = payment.created_at
-        user_payments.expires_at = payment.expires_at
-        user_payments.captured_at = payment.captured_at
-        user_payments.status = True
-        user_payments.save()
-        
-        acc = Access.objects.create(
-            user = request.user,
-            renta = user_payments.renta,
-            start = user_payments.renta.start,
-            end = user_payments.renta.end
-        )
-        print('Yeah its F')
-    
-    return redirect('projects:currentRenta')
-'''
-
 @login_required(login_url='/accounts/login/')
 def access(request):
     renta = Rents.objects.filter(rentor=request.user).exclude(status__exact=None).last()
@@ -283,6 +243,7 @@ def access(request):
     if acc.CheckAccess():
         print("Signal sent")
         acc.usedAdd()
+        openDoorAPI(renta.flat.id,'code-spec')
     else:
         print("Rights expired!")
     data = dict()
@@ -297,6 +258,7 @@ def access(request):
 @login_required(login_url='/accounts/login/')
 def rentCancel(request,pk):
     renta = get_object_or_404(Rents,rentor=request.user,status=True,id = pk,paid=False)
+    print(renta)
     renta.status = None
     renta.save()
     return redirect('projects:list')

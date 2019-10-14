@@ -110,6 +110,17 @@ class Flats(models.Model):
     def __str__(self):
         return "{0} {1}".format(self.street,self.district.district_name)
 
+    def addressPartOne(self):
+        return "{0}, {1}, {2} {3}".format(self.city(),self.district,self.street,self.HouseNumber())
+
+    def addressPartTwo(self):
+        return "кв. {0} этаж {1}".format(self.flat_number,self.floor)
+
+    def HouseNumber(self):
+        if self.building is None:
+            return self.house_number
+        return "{0} к.{1}".format(self.house_number,self.building)
+
     def city(self):
         return self.district.city()
 
@@ -182,11 +193,14 @@ class Images(models.Model):
 class RentsManager(models.Manager):
 
     def createRent(self,flat,user,start,end):
-        obj = self.create(flat=flat,rentor=user,start=start,end=end,status=True)
+        try:
+            obj = self.create(flat=flat,rentor=user,start=start,end=end,status=True)
+        except:
+            return None
         Access.objects.create(
             user = user, renta=obj, start=obj.start
         )
-        return True
+        return obj
 
     def confirmRent(self,rent,user):
         obj = self.get(id=rent.id,rentor=user)
@@ -200,6 +214,24 @@ class RentsManager(models.Manager):
         obj = self.get(id=rent.id,rentor=user)
         obj.status = None
         obj.save()
+    
+    def GetRentedCalendar(self,current_flat):
+        if current_flat is None:
+            return []
+        rented = self.filter(Q(start__gte=timezone.now()) | Q(start__lte=timezone.now(), end__gte=timezone.now()),flat=current_flat,status=True)
+        if len(rented) < 1:
+            return []
+        disabledDates = []
+        for i in rented:
+            for x in range(int((i.end-i.start).days)+1):
+                disabledDates.append(str((i.start+ timedelta(days=x)).date()))
+        return disabledDates
+    
+    def RentedObjects(self,start,end,current_flat):
+        rented = Rents.objects.filter(Q(start__gte=start) | Q(start__lte=start, end__gte=end),flat=current_flat,status=True).count()
+        if rented > 0:
+            return True
+        return False
 
 class Rents(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE,related_name="Квартира",related_query_name="Квартира")
@@ -216,37 +248,58 @@ class Rents(models.Model):
         verbose_name_plural = 'Аренды'
         ordering = ['-start']
 
+    def __str__(self):
+        return "{0} с {1} по {2}".format(self.flat,self.start,self.end)
+    
+    def Location(self):
+        return self.flat
+
+    def startDate(self):
+        return str(self.start)
+
+    def endDate(self):
+        return str(self.end)
+
     def getAlreardyRended(self):
         return self.filter(Q(start__gte=timezone.now()) | Q(start__lte=timezone.now(), end__gte=timezone.now()))
 
     def AccessObj(self):
         return Access.objects.filter(renta=self.id,user=self.rentor).last()
 
+    def getDays(self):
+        days = (self.end-self.start).days
+        if days < 1:
+            return 1
+        return days
+
     def getPrice(self):
-        return (self.end-self.start).days * self.flat.price
+        return self.getDays() * self.flat.price
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            if self.check_available():
+            if self.checkDates():
                 super().save(*args, **kwargs)
         else:
-            if self.check_available():
+            print(self.checkDates())
+            if self.checkDates():
                 days, hours = self.prolongRent()
                 if days >= 0 or hours >= 0:
                     super().save(*args, **kwargs)
 
-    def check_available(self):
+    def checkDates(self):
         if self.end < self.start:
+            print("here 1")
             return False
         if self.start.date() < timezone.now().date():
+            print("here 2")
             return False
         if self.getAvailableHours() is not None:
-            if self.start < self.getAvailableHours():
+            if self.start < self.getAvailableHours() and self.status is not None:
+                print("here 3")
                 return False
-        count = Rents.objects.filter(start__gte=self.start,end__lte=self.end,flat=self.flat,status=True).exclude(id=self.id).count()
-        count2 = Rents.objects.filter(end__gte=self.start,start__lte=self.end,flat=self.flat,status=True).exclude(id=self.id).count()
-        print(count2)
-        if count+count2 > 0:
+        rented = Rents.objects.filter(Q(start__gte=self.start) | Q(start__lte=self.start, end__gte=self.end),flat=self.flat,status=True).exclude(id=self.id).count()
+        if rented > 0 and self.status is not None:
+            print("here 4")
             return False
         return True
 
@@ -255,45 +308,18 @@ class Rents(models.Model):
         if date is not None:
             return self.dur(date.start - self.end-timedelta(hours=self.flat.cleaning_time.hour,minutes=self.flat.cleaning_time.minute))
         return self.dur(timedelta(days=100))
-
+    
     def dur(self,duration):
         days, seconds = duration.days, duration.seconds
         hours = days * 24 + seconds // 3600
         return days, hours
 
-    def __str__(self):
-        return "{0} с {1} по {2}".format(self.flat,self.start,self.end)
-
     def getAvailableHours(self):
-        lastRent = Rents.objects.filter(status=True,flat=self.flat).exclude(id=self.id).last() #status=True
+        lastRent = Rents.objects.filter(status=True,flat=self.flat).exclude(id=self.id).last()
         if lastRent is not None:
             return lastRent.end + timedelta(hours=self.flat.cleaning_time.hour,minutes=self.flat.cleaning_time.minute)
         return None
 
-    def getPayments(self):
-        paym = Payments.objects.filter(rentor=self.rentor,renta=self.pk).last()
-        if not paym:
-            if self.deposit:
-                print("pay depo")
-                return 3
-            else:
-                print("pay full")
-                return 2
-        else:
-            if paym.payment_type == "D" and paym.status is False:
-                print("pay depo")
-                return 3
-            elif paym.payment_type == "D" and paym.status is True:
-                print("pay full and see")
-                return 23
-            elif paym.payment_type == "F" and paym.status is False:
-                print("pay full")
-                return 2
-            elif paym.payment_type == "F" and paym.status is True:
-                print("ok")   
-                return 1 
-            else:
-                return -1
 
 class Payments(models.Model):
     P_TYPES = (
@@ -351,6 +377,7 @@ class Access(models.Model):
     def setStartTime(self):
         if self.end is None:
             now = timezone.now()
+            print(now)
             if (now >= self.renta.start):
                 self.start = timezone.now()
                 self.end = self.start + timedelta(minutes=10)
@@ -361,11 +388,13 @@ class Access(models.Model):
         if self.end is not None:
             now = timezone.now()
             if (now > self.start) and (now < self.end):
-                return self.end - now
+                return "{0} осталось".format(str(self.end - now))
             else:
+                if (now < self.start):
+                    return "Доступна с {0}".format(self.start.strftime("%b %d %Y %H:%M:%S"))
                 return "[Не доступно]"
         else:
-            return "10 минут"
+            return "10 минут осталось"
 
     def usedAdd(self):
         self.used+=1

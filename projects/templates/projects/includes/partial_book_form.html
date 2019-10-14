@@ -2,8 +2,14 @@
 
 {% for field in form %}
   <div class="form-group{% if field.errors %} has-error{% endif %}">
-    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-    {% render_field field class="form-control" %}
+    <label for="{{ field.id_for_label }}">{{field.label}}</label>
+    <div class="input-group mb-3">
+        {% render_field field class="form-control" autocomplete="off" %}
+    <div class="input-group-prepend">
+      <button class="btn btn-outline-secondary" name={{field.name}} type="button">Календарь</button>
+    </div>
+    
+  </div>
     {% for error in field.errors %}
       <p class="help-block">{{ error }}</p>
     {% endfor %}

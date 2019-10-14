@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block javascript %}
+
+<script src="{% static 'timetable/js/timetable.js' %}"></script>
+<script>
+        var timetable = new Timetable();
+    
+        timetable.setScope(0,23)
+    
+        timetable.addLocations([
+            {% for item in caal %}
+                '{{ item }}',
+            {%endfor%}
+            ]);
+        {% for s in sessions %}
+
+            {% for x in s.getPeriodTwo %}
+            timetable.addEvent('{{ s.account.chat.first_name }} {{s.account.chat.last_name}} {{s.id}}', '{{x.2}}', 
+            new Date(Date.parse('{{x.0}}')), 
+            new Date(Date.parse('{{x.1}}')), 
+            { url: '{{s.get_absolute_url}}',class:'{{s.statusVip}}',onClick: function(event) {
+        window.alert('You clicked on the ' + event.name + ' event in ' + event.location + '. This is an example of a click handler');
+      } });
+            {%endfor%}
+
+        {%endfor%}
+
+        
+
+
+        var renderer = new Timetable.Renderer(timetable);
+        renderer.draw('.timetable');
+    </script>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-header">Таблица отработанного времени</h1>
+
+<link rel="stylesheet" href="{% static 'timetable/css/timetablejs.css' %}">
+<link rel="stylesheet" href="{% static 'timetable/css/demo.css' %}">
+
+<form class="form-inline my-2 my-lg-0" action="{% url 'timetable:index'  %}" method="POST">
+    {% csrf_token %}
+    <input class="form-control mr-sm-2" type="date" name='start' value="{{start_d}}" placeholder="Дата гггг.мм.дд" aria-label="Поиск">
+    <input class="form-control mr-sm-2" type="text" name='end' value="{{end_d}}" placeholder="Количество дней" aria-label="Поиск">
+    <select name="bot_id" class="form-control" id="id_active">
+        {%for i in bots %}
+            <option value="{{i.id}}">{{i.name}}</option>
+        {%endfor%}     
+      </select>
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
+  </form>
+
+<div class="timetable"></div>
+{% for s in sessions %}
+{% for x in s.getPeriodTwo %}
+{{x.0}}
+{{x.1}}
+</br>
+{%endfor%}
+{%endfor%}
+
+{% endblock %}
+

@@ -1,0 +1,119 @@
+{% extends 'mangrs.html' %}
+
+{% load static %}
+
+{% block javascript %}
+    <script src="{% static 'managers/js/managers.js' %}"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="//stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css" integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css" integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous">
+    <script src="{% static 'timetable/js/jquery.skedTape.js' %}"></script>
+    <script type="text/javascript">
+        // --------------------------- Data --------------------------------
+        var locations = [
+            {% for item in flats %}
+            {id: '{{item.id}}', name: '{{item}}', tzOffset: 7*60},
+            {%endfor%}
+
+        ];
+        var events = [
+            {% for item in manager_list%}
+            {
+                name: 'Сессия #{{item.id}}',
+                location: '{{item.flat.id}}',
+                start: new Date(Date.parse('{{item.startDate}}')),
+                end: new Date(Date.parse('{{item.endDate}}')),
+                class: 'custom-class'
+            },
+            {%endfor%}
+        ];
+        // -------------------------- Helpers ------------------------------
+        function today(hours, minutes) {
+            var date = new Date();
+            date.setUTCHours(hours, minutes, 0, 0);
+            return date;
+        }
+        function yesterday(hours, minutes) {
+            var date = today(hours, minutes);
+            date.setTime(date.getTime() - 24 * 60 * 60 * 1000);
+            return date;
+        }
+        function tomorrow(hours, minutes) {
+            var date = today(hours, minutes);
+            date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
+            return date;
+        }
+        function DAFtomorrow(hours, minutes) {
+            var date = today(hours, minutes);
+            date.setTime(date.getTime() + 24*10 * 60 * 60 * 1000);
+            return date;
+        }
+    
+        var sked2Config = {
+            caption: 'Работники',
+            start: yesterday(0, 0), //new Date(Date.parse('{{start}}')), 
+            end: DAFtomorrow(0, 0),//new Date (Date.parse('{{end}}')),//
+            showEventTime: true,
+            showEventDuration: true,
+            scrollWithYWheel: true,
+            locations: locations.map(function(location) {
+                var newLocation = $.extend({}, location);
+                delete newLocation.tzOffset;
+                return newLocation;
+            }),
+            events: events.slice(),
+            tzOffset: 0,
+            sorting: true,
+            orderBy: 'name',
+        };
+        var $sked2 = $.skedTape(sked2Config);
+        $sked2.appendTo('#sked2').skedTape('render');
+        //$sked2.skedTape('destroy');
+        $sked2.skedTape(sked2Config);
+    
+    </script>
+    {% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'timetable/css/jquery.skedTape.css' %}">
+  <h1 class="page-header">Мои проекты</h1>
+
+  <p>
+    <button type="button" class="btn btn-primary js-create-book" data-url="{% url 'sharing:manager_create' %}">
+      <span class="glyphicon glyphicon-plus"></span>
+      Создать проект
+    </button>
+  </p>
+
+  <table class="table" id="book-table">
+    <thead>
+      <tr>
+        <th>Название</th>
+        <th>Бот</th>
+        <th>Заказчик</th>
+        <th>Начало \ конец</th>
+        <th>Цена</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% include 'managers/includes/partial_book_list.html' %}
+    </tbody>
+  </table>
+
+  <div class="modal fade" id="modal-book">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+      <!-- EXAMPLE 1 -->
+      <div id="sked2"></div>
+  </div>
+{% endblock %}

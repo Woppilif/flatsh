@@ -44,7 +44,9 @@
   
   </div>
 {% else %}
-Упс! Как вы здесь оказались? :)  
+<script>
+  window.location.replace("{% url 'projects:list' %}");
+</script>  
 {% endif %} 
 {% endblock %}
 

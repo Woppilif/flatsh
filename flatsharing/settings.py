@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks', 
-    #'channels'
+    "bootstrap4",
+    'bootstrap_datepicker_plus',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -96,7 +98,7 @@ DATABASES = {
     }
 }
 
-'''
+
 ASGI_APPLICATION = 'routing.application'
 CHANNEL_LAYERS = {
     'default': {
@@ -106,7 +108,7 @@ CHANNEL_LAYERS = {
         },
     },
 }
-'''
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 

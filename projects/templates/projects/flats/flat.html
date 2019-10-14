@@ -1,48 +1,54 @@
 
-
-<div class="card mb-4 shadow-sm">
-    <div id="carouselExampleIndicators" class="carousel slide card-img-top" width="100%" height="225" data-ride="carousel" >
-        <ol class="carousel-indicators">
-    
-            {% for image in images %}
-            <li data-target="#carouselExampleIndicators" data-slide-to="{{ forloop.counter0 }}" class="{%if forloop.counter0 == 0 %} active {%endif%}"></li>
-    
-            {%endfor%}
-        </ol>
-        <div class="carousel-inner">
-            {% for image in images %}
-            <div class="carousel-item {%if forloop.counter0 == 0 %} active {%endif%}">
-            <img class="d-block w-100" src="/media/{{image.images}}" alt="First slide" height="300">
-            </div>
-            {%endfor%}
+<div class="card" >
+    <div class="row no-gutters">
+      <div class="col-md-5">
+          <div id="carouselExampleIndicators" class="carousel slide card-img-top"  data-ride="carousel" >
+              <ol class="carousel-indicators">
+          
+                  {% for image in images %}
+                  <li data-target="#carouselExampleIndicators" data-slide-to="{{ forloop.counter0 }}" class="{%if forloop.counter0 == 0 %} active {%endif%}"></li>
+          
+                  {%endfor%}
+              </ol>
+              <div class="carousel-inner">
+                  {% for image in images %}
+                  <div class="carousel-item {%if forloop.counter0 == 0 %} active {%endif%}">
+                  <img class="d-block w-100" src="/media/{{image.images}}" alt="First slide" height="300">
+                  </div>
+                  {%endfor%}
+              </div>
+              <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="sr-only">Next</span>
+              </a>
         </div>
-        <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
-  </div>
-  
-  <div class="card-body">
-    <p class="card-text">{{flat}}</p>
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="btn-group">
-            <input type="button"
-            class="btn btn-sm btn-outline-secondary reFresh"
-            data-url="{% url 'projects:project_list' back %}" value="Назад">
-
-
-
-            <input type="button"
-            class="btn btn-sm btn-outline-secondary Buchen"
-            data-url="{% url 'projects:project_create' flat.id %}" value="Забронировать">
       </div>
-      <small class="text-muted">9 mins</small>
+      <div class="col-md-7">
+        <div class="card-body">
+          <h5 class="card-title">{{flat.addressPartOne}}</h5>
+          <p class="card-text">{{flat.description}}</p>
+          <div class="btn-group">
+              <input type="button"
+              class="btn btn-sm btn-outline-secondary reFresh"
+              data-url="{% url 'projects:project_list' back %}" value="Назад">
+  
+  
+              {% if not project_list %}
+              <input type="button" id = "Buch"
+              class="btn btn-sm btn-outline-secondary Buchen"
+              data-url="{% url 'projects:project_create' flat.id %}" value="Забронировать">
+              {%endif%}
+        </div>
+          <p class="card-text"><small class="text-muted">{{flat.price}} в сутки</small></p>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+
+
 
 
