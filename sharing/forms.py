@@ -1,5 +1,5 @@
 from django import forms
-from .models import Rents, UsersDocuments
+from .models import Rents, UsersDocuments, Flats, Images
 from django.contrib.admin import widgets 
 
 from django.utils import timezone
@@ -13,6 +13,26 @@ class UserDocumentsForm(forms.ModelForm):
         #exclude = ('user',)
         fields = ('firstname','lastname','phone_number','image_one','image_two','agreement')
         model = UsersDocuments
+
+class FlatEditForm(forms.ModelForm):
+    def __init__(self,current_user = None , *args, **kwargs):
+        super(FlatEditForm, self).__init__(*args, **kwargs)
+        print(current_user)
+        self.fields['district'].queryset = self.fields['district'].queryset.filter(partner=current_user.workers.partner)
+
+    class Meta:
+        fields = '__all__'
+        model = Flats  
+
+class FlatImagesForm(forms.ModelForm):
+    def __init__(self,current_user = None , *args, **kwargs):
+        super(FlatImagesForm, self).__init__(*args, **kwargs)
+        #print(current_user)
+        #self.fields['district'].queryset = self.fields['district'].queryset.filter(partner=current_user.workers.partner)
+
+    class Meta:
+        fields = ('images',)
+        model = Images  
 
 class RentForm(forms.ModelForm):
     

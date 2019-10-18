@@ -1,32 +1,18 @@
-{% for item in manager_list %}
+{% for item in flats %}
   <tr>
-    <td>
-        {% if item.status == 0 %}<abbr title="Проект не активирован"> {% endif %}
-        {{ item.name }}
-        {% if item.status == 0 %}</abbr>{% endif %}
-      
-    </td>
-    <td>{{ item.bot.name }}</td>
-    <td>{{ item.customer }}</td>
-    <td>{{ item.start }} \ {{ item.end }}</td>
+  
+    <td>{{ item.addressPartOne }} {{ item.addressPartTwo }}</td>
+    <td>{{ item.price }} \ {{ item.deposit }}</td>
+    <td>{{ item.per_hour }}</td>
 
-    <td>{{ item.price }}</td>
+    <td>{{ item.getStatus }}</td>
     
     <td>
-      <button type="button"
-              class="btn btn-warning btn-sm js-update-book"
-              data-url="{% url 'sharing:manager_update' item.id %}"> 
-        <span class="glyphicon glyphicon-pencil"></span> Редактировать
-      </button>
-      <button type="button"
-              class="btn btn-danger btn-sm js-delete-book"
-              data-url="{% url 'sharing:manager_delete' item.id %}">
-        <span class="glyphicon glyphicon-trash"></span> Удалить
-      </button>
+      <a href="{% url 'sharing:flatsEdit' item.id %}" class="btn btn-warning btn-sm">Редактировать</a>
     </td>
   </tr>
 {% empty %}
   <tr>
-    <td colspan="8" class="text-center bg-warning">У вас еще нет проектов</td>
+    <td colspan="8" class="text-center bg-warning">У вас еще нет квартир</td>
   </tr>
 {% endfor %}

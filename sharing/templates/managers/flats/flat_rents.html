@@ -1,0 +1,18 @@
+{% for item in rents %}
+  <tr {%if item.status is True%} class="table-success" {%endif%}>
+  
+    <td>{{item.start}} {{item.end}}</td>
+    <td>{{item.getDays}} дней \ {{item.getPrice}}</td>
+    <td>{{item.status}}</td>
+
+    <td>{{item.paid}}</td>
+    <td>{{item.rentor}}</td>
+    <td>
+      <a href="#" class="btn btn-warning btn-sm">Редактировать</a>
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="8" class="text-center bg-warning">У данной квартиры еще нет событий</td>
+  </tr>
+{% endfor %}

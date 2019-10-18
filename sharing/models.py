@@ -44,13 +44,13 @@ class Partners(models.Model):
 
 class Workers(models.Model):
     SHIRT_SIZES = (
-        ('O', 'Оператор'),
-        ('C', 'Клининг'),
-        ('M', 'Мастер'),
+        (1, 'Оператор'),
+        (2, 'Клининг'),
+        (3, 'Мастер'),
     )
     partner = models.ForeignKey(Partners, on_delete=models.CASCADE)
     account = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=1, choices=SHIRT_SIZES)
+    role = models.IntegerField(choices=SHIRT_SIZES)
     def __str__(self):
         return str(self.account)
 
@@ -139,6 +139,12 @@ class Flats(models.Model):
 
     def getRents(self):
         return Rents.objects.filter(Q(start__gte=timezone.now()) | Q(start__lte=timezone.now()),flat=self,end__gte=timezone.now())
+
+    def getStatus(self):
+        rent = Rents.objects.filter(start__lte=timezone.now(),end__gt=timezone.now(),flat_id=self.id,status=True).last()
+        if rent is not None:
+            return "Занята"
+        return "Свободна"
 
 def get_file_path(instance, filename):
     ext = filename.split('.')[-1]

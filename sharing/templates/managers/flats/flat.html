@@ -1,0 +1,89 @@
+{% extends 'mangrs.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block javascript %}
+    <script src="{% static 'managers/js/managers.js' %}"></script>
+    
+    {% endblock %}
+
+{% block content %}
+<nav>
+<div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Основная информация</a>
+    <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Медиа</a>
+    <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Последние события</a>
+</div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+    <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+        <h1 class="page-header">Редактирование {{flats}}</h1>
+
+
+        <form method="post" action="{% url 'sharing:flatsEdit' flats.id %}" class="js-book-create-form">
+            <div class="modal-header">
+                <a href="{% url 'sharing:flats' %}" class="btn btn-default">Назад</a>
+                <button type="submit" class="btn btn-primary" name="flat_save">Сохранить</button>
+            </div>
+            {% csrf_token %}
+            <div class="modal-body">
+                {% for field in form %}
+                <div class="form-group{% if field.errors %} has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% render_field field class="form-control" %}
+                {% for error in field.errors %}
+                    <p class="help-block">{{ error }}</p>
+                {% endfor %}
+                </div>
+            {% endfor %}
+            </div>
+            
+        </form>
+    </div>
+    <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+        <h1 class="page-header">Медиа {{flats}}</h1>
+        <form method="post" action="{% url 'sharing:flatsEdit' flats.id %}" enctype='multipart/form-data'>
+            <div class="modal-header">
+                <button type="submit" class="btn btn-primary" name="image_save">Добавить</button>
+            </div>
+            {% csrf_token %}
+            <div class="modal-body">
+                {% for field in form_images %}
+                <div class="form-group{% if field.errors %} has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% render_field field class="form-control" %}
+                {% for error in field.errors %}
+                    <p class="help-block">{{ error }}</p>
+                {% endfor %}
+                </div>
+            {% endfor %}
+            </div>
+            
+        </form>
+        {%for item in images%}
+            <img src="/media/{{item.images}}" alt="..." class="img-thumbnail">
+        {%endfor%}
+
+    </div>
+    <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+            <table class="table" id="book-table">
+                <thead>
+                    <tr>
+                    <th>Даты</th>
+                    <th>Дни \ сумма</th>
+                    <th>Статус</th>
+                    <th>Оплачен</th>
+                    <th>Рентор</th>
+                    <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% include 'managers/flats/flat_rents.html' %}
+                </tbody>
+            </table>
+    </div>
+</div>
+  
+
+
+{% endblock %}
