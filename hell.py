@@ -6,7 +6,7 @@ import time
 import json
 
 async def hello():
-    async with websockets.connect("wss://79fc3a1f.ngrok.io/ws/chat/2/") as websocket:
+    async with websockets.connect("ws://5.63.152.213/ws/chat/1/") as websocket:
         print("Listening....")
         greeting = await websocket.recv()
         greeting = greeting.replace("'", "\"")
@@ -25,6 +25,8 @@ async def Run():
         except InvalidStatusCode:
             print("InvalidStatusCode! Trying to connect to server.....!")
             time.sleep(5)
+        except ConnectionRefusedError:
+            print("ConnectionRefusedError! Trying to connect to server.....!")
+            time.sleep(5)
         
-
 asyncio.get_event_loop().run_until_complete(Run())
