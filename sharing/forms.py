@@ -1,11 +1,9 @@
 from django import forms
 from .models import Rents, UsersDocuments, Flats, Images
 from django.contrib.admin import widgets 
-
 from django.utils import timezone
 from datetime import timedelta,datetime
 from django.db.models import Q
-from bootstrap_datepicker_plus import DatePickerInput
 
 class UserDocumentsForm(forms.ModelForm):
 

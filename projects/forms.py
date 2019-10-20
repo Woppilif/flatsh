@@ -5,7 +5,6 @@ from .widgets import XDSoftDateTimePickerInput
 from django.utils import timezone
 from datetime import timedelta,datetime
 from django.db.models import Q
-from bootstrap_datepicker_plus import DatePickerInput
 # Create your models here.
 
 class RentForm(forms.ModelForm):

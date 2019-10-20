@@ -44,8 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks', 
-    "bootstrap4",
-    'bootstrap_datepicker_plus',
     'channels'
 ]
 
