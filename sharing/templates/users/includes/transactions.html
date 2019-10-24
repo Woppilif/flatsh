@@ -1,0 +1,12 @@
+{%for item in payments%}
+<tr>
+    <th scope="row">{{item.id}}</th>
+    <td>{{item.renta}}</td>
+    <td>{{item.price}} \ {{item.status}}</td>
+    <td>{{item.payment_type}}</td>
+</tr>
+{% empty %}
+  <tr>
+    <td colspan="7" class="text-center bg-warning">-</td>
+  </tr>
+{%endfor%}

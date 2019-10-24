@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks', 
+    'phone_field',
     'channels'
 ]
 
@@ -88,7 +89,7 @@ WSGI_APPLICATION = 'flatsharing.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'flatsharing',
+        'NAME': 'fs',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': '127.0.0.1', 

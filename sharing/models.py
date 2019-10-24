@@ -83,8 +83,8 @@ class Districts(models.Model):
 
 class Flats(models.Model):
     DOOR_STATS = (
-        ('B', 'Заблокирована'),
-        ('U', 'Доступ открыт')
+        (False, 'Заблокирована'),
+        (True, 'Доступ открыт')
     )
     FLAT_STATS = (
         ('BLOCKED', 'Заблокирована'),
@@ -107,6 +107,7 @@ class Flats(models.Model):
     status = models.CharField(max_length=10,blank=True, null=True,choices=FLAT_STATS)
     door_status = models.BooleanField(blank=True, null=True,choices=DOOR_STATS)
     cleaning_time = models.TimeField(blank=True, null=True,default="3:00")
+    app_id = models.CharField(max_length=60, blank=True, null=True)
     def __str__(self):
         return "{0} {1}".format(self.street,self.district.district_name)
 
@@ -200,12 +201,13 @@ class RentsManager(models.Manager):
 
     def createRent(self,flat,user,start,end):
         try:
-            obj = self.create(flat=flat,rentor=user,start=start,end=end,status=True)
+            obj = self.create(flat=flat,rentor=user,start=start,end=end,status=True,created_at=timezone.now())
         except:
             return None
         Access.objects.create(
             user = user, renta=obj, start=obj.start
         )
+        
         return obj
 
     def confirmRent(self,rent,user):
@@ -246,7 +248,7 @@ class Rents(models.Model):
     end = models.DateTimeField(verbose_name='Окончание аренды')
     status = models.BooleanField(null=True,default=False)
     paid = models.BooleanField(null=True,default=False)
-
+    created_at = models.DateTimeField(null=True,default=False)
     renta = RentsManager()
     objects = models.Manager()
     class Meta:
@@ -413,8 +415,8 @@ class UsersDocuments(models.Model):
         (True, 'Подтверждён')
     )
     PAID_TYPES = (
-        (False, 'Не согласен'),
-        (True, 'Согласен')
+        (False, 'Не подтверждён'),
+        (True, 'Подтверждён')
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     firstname = models.CharField(max_length=50,default="", blank=False, null=False,verbose_name="Имя")
@@ -424,7 +426,7 @@ class UsersDocuments(models.Model):
     image_two = models.ImageField(upload_to=get_file_path_users,default=None,verbose_name="Фотография страницы с пропиской")
     status = models.BooleanField(null=False,default=False,choices=PAID_TYPES)
     yakey = models.CharField(max_length=50,default=None, blank=False, null=True)
-    agreement = models.BooleanField(null=False,choices=PAID_TYPES,verbose_name="Согласие с лицензионным соглашением")
+    totlal_cancelation = models.IntegerField(null=True,default=0,blank=True)    
 
     def __str__(self):
         return str(self.user)

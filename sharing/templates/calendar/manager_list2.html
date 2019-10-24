@@ -14,7 +14,7 @@
         // --------------------------- Data --------------------------------
         var locations = [
             {% for item in flats %}
-            {id: '{{item.id}}', name: '{{item}}', tzOffset: 7*60},
+            {id: '{{item.id}}', name: '{{item}}',tzOffset: -3 * 60},
             {%endfor%}
 
         ];
@@ -54,7 +54,15 @@
         var sked2Config = {
             caption: 'Работники',
             start: yesterday(0, 0), //new Date(Date.parse('{{start}}')), 
-            end: DAFtomorrow(0, 0),//new Date (Date.parse('{{end}}')),//
+            end: tomorrow(0, 0),//new Date (Date.parse('{{end}}')),//
+            showEventTime: true,
+                showEventDuration: true,
+                scrollWithYWheel: true,
+                locations: locations.slice(),
+                events: events.slice(),
+                maxTimeGapHi: 60 * 1000, // 1 minute
+                minGapTimeBetween: 1 * 60 * 1000,
+
             showEventTime: true,
             showEventDuration: true,
             scrollWithYWheel: true,

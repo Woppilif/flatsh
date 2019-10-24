@@ -15,12 +15,20 @@ def index2(request,pk):
     return render(request, 'api/chat2.html', {"room_name_json":room_name_json})
 
 def index3(request,group_name):
-    openDoorAPI(group_name,message = "hello")
+    sendMessageToAllAPI(group_name,message = "update")
     return HttpResponse('<p>Done</p>')
 
 def openDoorAPI(flat_id,message = "hello"):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("chat_{0}".format(flat_id), {
+        'type': 'channel_message',
+        'message': json.dumps(message)
+    })
+    return True
+
+def sendMessageToAllAPI(flat_id,message = "hello"):
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)("events", {
         'type': 'channel_message',
         'message': json.dumps(message)
     })

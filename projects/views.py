@@ -86,7 +86,15 @@ def save_book_form(request, form, template_name):
                 obj = Rents.renta.createRent(flat=form.current_flat,user=request.user,start=ff.start,end=ff.end)
                 print(obj)
             except:
-                print(False)
+                obj = None
+                print('Renta object wasnt created!')
+            if obj is not None:
+                if timezone.now().hour >= 15 and timezone.now() >= ff.start:
+                    rentaStart(request,obj.pk)
+                if request.user.usersdocuments.totlal_cancelation > 2:
+                    request.user.usersdocuments.totlal_cancelation = 0
+                    request.user.usersdocuments.save()
+                    rentaStart(request,obj.pk)
             '''
             project = form.save(commit=False) #
             project.rentor = request.user
@@ -109,19 +117,9 @@ def save_book_form(request, form, template_name):
             data['form_is_valid'] = False
     context = {'form': form}
     data['html_form'] = render_to_string(template_name, context, request=request)
+    
     return JsonResponse(data)
-'''
-@login_required(login_url='/accounts/login/')
-def project_refresh(request):
-    data = dict()
-    project_list = Rents.objects.filter(rentor=request.user)
-    data['html_book_list'] = render_to_string('projects/includes/partial_book_list.html', {
-                'project_list':project_list
-    })
-  
-    data['form_is_valid'] = True
-    return JsonResponse(data)
-'''
+
 @login_required(login_url='/accounts/login/')
 def project_create(request,pk):
     if currentRentaDef(request.user) != '':
@@ -162,6 +160,10 @@ def project_delete(request, pk):
 
 @login_required(login_url='/accounts/login/')
 def flatPay(request,pk):
+    rentaStart(request,pk)
+    return redirect('projects:list')
+
+def rentaStart(request,pk):
     renta = get_object_or_404(Rents,rentor=request.user,status=True,id = pk,paid=False)
 
     deposit, created = Payments.objects.get_or_create(
@@ -232,7 +234,9 @@ def flatPay(request,pk):
             start = full.renta.start,
             end = full.renta.end
         )
-    return redirect('projects:list')
+    request.user.usersdocuments.totlal_cancelation = 0
+    request.user.usersdocuments.save()
+    return True
 
 @login_required(login_url='/accounts/login/')
 def access(request):
@@ -241,9 +245,9 @@ def access(request):
     #print(acc.get_absolute_url())
     acc.setStartTime()
     if acc.CheckAccess():
-        print("Signal sent")
+        print("Signal sent to {0}".format(renta.flat.id))
         acc.usedAdd()
-        openDoorAPI(renta.flat.id,'code-spec')
+        openDoorAPI(renta.flat.id,renta.flat.app_id)
     else:
         print("Rights expired!")
     data = dict()
@@ -258,8 +262,13 @@ def access(request):
 @login_required(login_url='/accounts/login/')
 def rentCancel(request,pk):
     renta = get_object_or_404(Rents,rentor=request.user,status=True,id = pk,paid=False)
-    print(renta)
-    renta.status = None
-    renta.save()
+    
+    if timezone.now().hour >= 15:
+        return redirect('projects:flatPay',pk=renta.pk)
+    else:
+        renta.status = None
+        renta.save()   
+        request.user.usersdocuments.totlal_cancelation = request.user.usersdocuments.totlal_cancelation + 1
+        request.user.usersdocuments.save()
     return redirect('projects:list')
 

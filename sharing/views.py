@@ -2,9 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.http import JsonResponse
-from .models import Rents, Flats, Images
+from .models import Rents, Flats, Images, UsersDocuments, Payments
 from .forms import FlatEditForm, FlatImagesForm
 from django.contrib import messages
+from django.contrib.auth.models import User
 
 def index(request):
     if request.user.is_authenticated:
@@ -16,7 +17,35 @@ def managers(request):
     print(request.user.workers.account)
     flats = Flats.objects.filter(district__partner=request.user.workers.partner)
     manager_list = Rents.objects.filter(status=True)
-    return render(request, 'calendar/manager_list.html', {'manager_list':manager_list,'flats':flats})
+    return render(request, 'calendar/manager_list2.html', {'manager_list':manager_list,'flats':flats})
+
+@login_required(login_url='/accounts/login/')
+def users(request,pk = None):
+    users = get_object_or_404(User, pk=pk)
+    last = Rents.objects.filter(rentor=users).last()
+    if last is None:
+        return redirect('sharing:flats')
+    print(last.flat.district.partner,request.user.workers.partner)
+    if last.flat.district.partner != request.user.workers.partner:
+        return redirect('sharing:flats')
+    rents = Rents.objects.filter(rentor=users,flat__district__partner=request.user.workers.partner)
+    payments = Payments.objects.filter(rentor=users,renta__in=[i.pk for i in rents])
+    return render(request, 'users/users_list.html', {'users':users,'rents':rents,'payments':payments})
+
+@login_required(login_url='/accounts/login/')
+def blockUser(request,pk = None):
+    users = get_object_or_404(User, pk=pk)
+    last = Rents.objects.filter(rentor=users).last()
+    if last is not None:
+        if last.flat.district.partner != request.user.workers.partner:
+            return redirect('flats:flats')
+    if users.is_active == False:
+        users.is_active = True
+    else:
+        users.is_active = False
+    users.save()
+    return redirect('sharing:users',pk=pk)
+
 
 def checkRoleManager(request):
     if request.user.workers.role != 1:

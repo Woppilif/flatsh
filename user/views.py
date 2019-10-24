@@ -1,13 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import UserDocumentsForm
+from .forms import UserDocumentsForm, UserCreationForm
 from yandex_checkout import Payment,Configuration 
 import uuid
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm,PasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import authenticate, login#
 from django.contrib import messages
 from sharing.models import Payments, Rents
 from django.utils import timezone
+from flatsharing.settings import ALLOWED_HOSTS
 Configuration.account_id = 591310
 
 Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
@@ -37,11 +38,13 @@ def UserDocuments(request):
         if form.is_valid():
             docs = form.save(commit=False)
             docs.user = request.user
-            if docs.agreement is True:
-                docs.save()
-                return redirect('user:UserAddCard')
-            messages.warning(request,"Вы не можете быть зарегистрированы без принятия правил сервиса")
-            return redirect('projects:list')
+            docs.save()
+            print(docs.firstname)
+            usr = request.user
+            usr.first_name = docs.firstname
+            usr.last_name = docs.lastname
+            usr.save()
+            return redirect('user:UserAddCard')
     else:
         form = UserDocumentsForm()
     return render(request, 'user/documents.html', {'form': form})
@@ -72,7 +75,7 @@ def UserAddCard(request):
             },
             "confirmation": {
                 "type": "redirect",
-                "return_url": "https://e064f267.ngrok.io/users/accounts/addcard/confirmation"
+                "return_url": "https://{0}/users/accounts/addcard/confirmation".format(ALLOWED_HOSTS[0])
             },
             "description": "Заказ ID:{0}".format(payment.pk),
             "save_payment_method": "true"
@@ -120,7 +123,7 @@ def UserRegister(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            username = form.cleaned_data.get('username')
+            username = form.cleaned_data.get('email')
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)

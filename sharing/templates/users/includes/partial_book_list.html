@@ -1,0 +1,18 @@
+{% for item in users %}
+  <tr>
+  
+    <td>{{ item.lastname }} {{ item.firstname }}</td>
+    <td>{{ item.phone_number }}</td>
+    <td><a href="media/{{ item.image_one }}">Открыть</a></td>
+
+    <td><a href="media/{{ item.image_two }}">Открыть</a></td>
+    
+    <td>
+      <a href="{% url 'sharing:users'  item.pk %}" class="btn btn-warning btn-sm">Подтвердить</a>
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="7" class="text-center bg-warning">У вас еще нет квартир</td>
+  </tr>
+{% endfor %}

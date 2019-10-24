@@ -1,0 +1,55 @@
+{% extends 'mangrs.html' %}
+
+{% load static %}
+
+{% block javascript %}
+    <script src="{% static 'managers/js/managers.js' %}"></script>
+    
+    {% endblock %}
+
+{% block content %}
+  <h1 class="page-header">Клиент: {{users.usersdocuments.lastname}} {{users.usersdocuments.firstname}}</h1>
+    <p>Номер телефона: {{users.usersdocuments.phone_number}}</p>
+    <p><a href="/media/{{users.usersdocuments.image_one}}">Скан № 1</a></p>
+    <p><a href="/media/{{users.usersdocuments.image_two}}">Скан № 2</a></p>
+    <p><a href="{%url 'sharing:blockUser' users.pk %}">Статус пользователя {{users.is_active}}</a></p>
+  <h2>Транзакции</h2>
+  <table class="table" id="book-table">
+      <thead>
+          <tr>
+              <th scope="col">#</th>
+              <th scope="col">Аренда</th>
+              <th scope="col">Стоимость и статус</th>
+              <th scope="col">Тип</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% include 'users/includes/transactions.html' %}
+      </tbody>
+  </table>
+  <h2>Совершённые аренды</h2>
+  <table class="table" id="book-table">
+    <thead>
+        <tr>
+        <th>Даты</th>
+        <th>Дни \ сумма</th>
+        <th>Статус</th>
+        <th>Оплачен</th>
+        <th>Рентор</th>
+        <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% include 'managers/flats/flat_rents.html' %}
+    </tbody>
+</table>
+
+  <div class="modal fade" id="modal-book">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

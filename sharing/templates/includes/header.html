@@ -6,26 +6,14 @@
 
   <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
+         
+    
       <li class="nav-item">
-        <a class="nav-link" href="#">Главная <span class="sr-only">(current)</span></a>
-      </li>
-      <!--
-      <li class="nav-item">
-        <a class="nav-link" href="#">Уведомления</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Профиль</a>
-      </li> -->
+        <a class="nav-link" href="{% url 'sharing:flats' %}">Квартиры</a>
+      </li> 
 
    
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Дополнительно</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
-          <a class="dropdown-item" href="#">Документация</a>
-          <a class="dropdown-item" href="#">Настройки</a>
-          <a class="dropdown-item" href="/accounts/logout">Выход</a>
-        </div>
-      </li>
+  
     </ul>
     <form class="form-inline my-2 my-lg-0" action="#" method="post">
       {% csrf_token %}

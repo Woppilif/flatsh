@@ -5,12 +5,6 @@ from django.utils import timezone
 from datetime import timedelta,datetime
 from django.db.models import Q
 
-class UserDocumentsForm(forms.ModelForm):
-
-    class Meta:
-        #exclude = ('user',)
-        fields = ('firstname','lastname','phone_number','image_one','image_two','agreement')
-        model = UsersDocuments
 
 class FlatEditForm(forms.ModelForm):
     def __init__(self,current_user = None , *args, **kwargs):

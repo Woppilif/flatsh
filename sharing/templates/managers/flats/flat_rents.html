@@ -6,9 +6,12 @@
     <td>{{item.status}}</td>
 
     <td>{{item.paid}}</td>
-    <td>{{item.rentor}}</td>
+ 
     <td>
-      <a href="#" class="btn btn-warning btn-sm">Редактировать</a>
+      <a href="{% url 'sharing:users' item.rentor.pk %}" class="btn btn-warning btn-sm">
+
+        {{item.rentor.usersdocuments.lastname}} {{item.rentor.usersdocuments.firstname}}
+      </a>
     </td>
   </tr>
 {% empty %}
