@@ -155,3 +155,9 @@ USE_TZ = True
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'ewtm.info@gmail.com'
+EMAIL_HOST_PASSWORD = 'Arch2008'
+EMAIL_PORT = 587

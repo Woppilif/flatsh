@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from . import consumers
 import json
-from api.tasks import send_feedback_email_task
+#from api.tasks import send_feedback_email_task
 # Create your views here.
 
 def index(request,pk):
@@ -17,16 +17,16 @@ def index2(request,pk):
 
 def index3(request,group_name):
     
-    x = send_feedback_email_task.delay(
-            "email", "message")
-    #sendMessageToAllAPI(group_name,message = "update")
+    
+    openDoorAPI(group_name,message = "update1")
     return HttpResponse('<p>Done</p>')
 
-def openDoorAPI(flat_id,message = "hello"):
+def openDoorAPI(flat_id,message = "hello",appid='key'):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("chat_{0}".format(flat_id), {
         'type': 'channel_message',
-        'message': json.dumps(message)
+        'message': json.dumps(message),
+        'appid' : appid
     })
     return True
 

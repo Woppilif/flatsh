@@ -10,6 +10,7 @@ from yandex_checkout import Payment,Configuration
 from datetime import timedelta
 from django.utils import timezone
 from api.views import openDoorAPI
+from api.tasks import start_renta_task
 Configuration.account_id = 591310
 
 Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
@@ -88,13 +89,16 @@ def save_book_form(request, form, template_name):
             except:
                 obj = None
                 print('Renta object wasnt created!')
+           
             if obj is not None:
                 if timezone.now().hour >= 15 and timezone.now() >= ff.start:
-                    rentaStart(request,obj.pk)
+                    rentaStart(request.user,obj.pk)
                 if request.user.usersdocuments.totlal_cancelation > 2:
                     request.user.usersdocuments.totlal_cancelation = 0
                     request.user.usersdocuments.save()
-                    rentaStart(request,obj.pk)
+                    rentaStart(request.user,obj.pk)
+          
+
             '''
             project = form.save(commit=False) #
             project.rentor = request.user
@@ -160,82 +164,17 @@ def project_delete(request, pk):
 
 @login_required(login_url='/accounts/login/')
 def flatPay(request,pk):
-    rentaStart(request,pk)
+    rentaStart(request.user,pk)
     return redirect('projects:list')
 
-def rentaStart(request,pk):
-    renta = get_object_or_404(Rents,rentor=request.user,status=True,id = pk,paid=False)
-
-    deposit, created = Payments.objects.get_or_create(
-        rentor = request.user,
-        renta = renta,
-        price = renta.flat.deposit,
-        date = timezone.now(),
-        payment_type = 'D'
-    )
-
-    depositPayment = Payment.create({
-        "amount": {
-            "value": renta.flat.deposit,
-            "currency": "RUB"
-        },
-        "payment_method_id": request.user.usersdocuments.yakey,
-        "description": "Заказ ID:{0} Оплата депозита".format(deposit.pk)
-    })
-
-    deposit.payment_id = depositPayment.id
-    deposit.payment_status = depositPayment.status
-    deposit.created_at = depositPayment.created_at
-    deposit.expires_at = depositPayment.expires_at
-    deposit.status = True
-    deposit.save()
-
-    full, created = Payments.objects.get_or_create(
-        rentor = request.user,
-        renta = renta,
-        price = renta.getPrice(),
-        date = timezone.now(),
-        payment_type = 'F'
-    )
-
-    fullPayment = Payment.create({
-        "amount": {
-            "value": full.price,
-            "currency": "RUB"
-        },
-        "payment_method_id": request.user.usersdocuments.yakey,
-        "description": "Заказ ID:{0} Оплата аренды".format(deposit.pk)
-    })
-    idempotence_key = str(uuid.uuid4())
-    response = Payment.capture(
-        fullPayment.id,
-        {
-            "amount": {
-            "value": full.price,
-            "currency": "RUB"
-            }
-        },
-        idempotence_key
-    )
-    print(response.status)
-    if response.status == 'succeeded':
-        fullPayment = Payment.find_one(response.id)
-        full.payment_id = fullPayment.id
-        full.payment_status = fullPayment.status
-        full.created_at = fullPayment.created_at
-        full.expires_at = fullPayment.expires_at
-        full.status = True
-        full.save()
-        full.renta.paid = True
-        full.renta.save()
-        acc = Access.objects.create(
-            user = request.user,
-            renta = full.renta,
-            start = full.renta.start,
-            end = full.renta.end
-        )
-    request.user.usersdocuments.totlal_cancelation = 0
-    request.user.usersdocuments.save()
+def rentaStart(user,pk):
+    print("rentaStart")
+    renta = get_object_or_404(Rents,rentor=user,status=True,id = pk,paid=False)
+    print(renta)
+    result = start_renta_task.delay(renta.pk,user.pk)
+    print (result)
+    print (result.ready())
+    print (result.get())
     return True
 
 @login_required(login_url='/accounts/login/')
@@ -247,7 +186,7 @@ def access(request):
     if acc.CheckAccess():
         print("Signal sent to {0}".format(renta.flat.id))
         acc.usedAdd()
-        openDoorAPI(renta.flat.id,renta.flat.app_id)
+        openDoorAPI(renta.flat.id,'open',renta.flat.app_id)
     else:
         print("Rights expired!")
     data = dict()

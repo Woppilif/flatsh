@@ -17,7 +17,7 @@ class AccessInline(admin.StackedInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [ChoiceInline]
-    list_display = ('street','district','city','status')
+    list_display = ('street','district','city','status','app_status')
     list_filter = ['district']
     search_fields = ['street']
 

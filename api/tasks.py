@@ -1,13 +1,43 @@
 from celery.decorators import task
 from celery.utils.log import get_task_logger
-import requests
+from django.core.mail import send_mail
+from celery.task.schedules import crontab
+from celery.decorators import periodic_task
+from sharing.models import Access, Payments
+from django.utils import timezone
+
 logger = get_task_logger(__name__)
 
-
-@task(name="send_feedback_email_task")
-def send_feedback_email_task(email, message):
+@task(name="start_renta_task")
+def start_renta_task(renta,user):
+    print(renta,user)
     """sends an email when feedback form is filled successfully"""
-    logger.info("Sent feedback email")
-    print(email, message)
-    
+    depo = Payments.paym.createDeposit(renta,user)
+    print(depo)
+    full = Payments.paym.createFull(renta,user)
+    print(full)
+    logger.info("start_renta_task")
     return True
+
+@periodic_task(
+    run_every=(crontab(minute='*/1')),
+    name="task_save_latest_flickr_image",
+    ignore_result=True
+)
+def task_save_latest_flickr_image():
+    """
+    Saves latest image from Flickr
+    """
+    #save_latest_flickr_image()
+    acc_list = Access.objects.filter(end__lte=timezone.now(),renta__status=True)
+    for i in acc_list:
+        if i.stype is False and i.renta.paid is False:
+            depo = Payments.paym.createDeposit(i.renta.pk,i.user.pk)
+            print(depo)
+            full = Payments.paym.createFull(i.renta.pk,i.user.pk)
+            print(full)
+
+            logger.info("Renta start auto!")
+        
+    logger.info("Checkin renta....")
+    

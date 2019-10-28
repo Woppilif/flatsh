@@ -8,6 +8,11 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models import Q
 from PIL import Image
+from yandex_checkout import Payment,Configuration 
+
+Configuration.account_id = 591310
+
+Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
 #from .managers import PersonManager
 
 # Create your models here.
@@ -81,6 +86,24 @@ class Districts(models.Model):
         verbose_name = 'Район'
         verbose_name_plural = 'Районы'
 
+class FlatManager(models.Manager):
+
+    def get_flat(self,flat_id):
+        try:
+            self.get(pk=flat_id)
+            return True
+        except:
+            return False
+
+    def update_flat_status(self,flat_id,status):
+        if self.get_flat(flat_id):
+            flat =  self.get(pk=flat_id)
+            flat.app_status = status
+            flat.save()
+            return True
+        return False
+
+
 class Flats(models.Model):
     DOOR_STATS = (
         (False, 'Заблокирована'),
@@ -108,6 +131,11 @@ class Flats(models.Model):
     door_status = models.BooleanField(blank=True, null=True,choices=DOOR_STATS)
     cleaning_time = models.TimeField(blank=True, null=True,default="3:00")
     app_id = models.CharField(max_length=60, blank=True, null=True)
+    app_status = models.BooleanField(blank=True, null=True,default=None)
+
+    flas = FlatManager()
+    objects = models.Manager()
+
     def __str__(self):
         return "{0} {1}".format(self.street,self.district.district_name)
 
@@ -241,6 +269,9 @@ class RentsManager(models.Manager):
             return True
         return False
 
+    def RentaStart(self):
+        pass
+
 class Rents(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE,related_name="Квартира",related_query_name="Квартира")
     rentor = models.ForeignKey(User, models.DO_NOTHING)
@@ -328,6 +359,88 @@ class Rents(models.Model):
             return lastRent.end + timedelta(hours=self.flat.cleaning_time.hour,minutes=self.flat.cleaning_time.minute)
         return None
 
+class PaymentsManager(models.Manager):
+
+    def createDeposit(self,renta,user):
+        renta = Rents.objects.get(pk=renta)
+        user = User.objects.get(pk=user)
+        deposit, created = self.get_or_create(
+            rentor = user,
+            renta = renta,
+            price = renta.flat.deposit,
+            date = timezone.now(),
+            payment_type = 'D'
+        )
+
+        depositPayment = Payment.create({
+            "amount": {
+                "value": renta.flat.deposit,
+                "currency": "RUB"
+            },
+            "payment_method_id": user.usersdocuments.yakey,
+            "description": "Заказ ID:{0} Оплата депозита".format(deposit.pk)
+        })
+
+        deposit.payment_id = depositPayment.id
+        deposit.payment_status = depositPayment.status
+        deposit.created_at = depositPayment.created_at
+        deposit.expires_at = depositPayment.expires_at
+        deposit.status = True
+        deposit.save()
+        print("okas")
+        return True
+
+    def createFull(self,renta,user):
+        renta = Rents.objects.get(pk=renta)
+        user = User.objects.get(pk=user)
+        full, created = self.get_or_create(
+            rentor = user,
+            renta = renta,
+            price = renta.getPrice(),
+            date = timezone.now(),
+            payment_type = 'F'
+        )
+
+        fullPayment = Payment.create({
+            "amount": {
+                "value": full.price,
+                "currency": "RUB"
+            },
+            "payment_method_id": user.usersdocuments.yakey,
+            "description": "Заказ ID:{0} Оплата аренды".format(full.pk)
+        })
+        idempotence_key = str(uuid.uuid4())
+        response = Payment.capture(
+            fullPayment.id,
+            {
+                "amount": {
+                "value": full.price,
+                "currency": "RUB"
+                }
+            },
+            idempotence_key
+        )
+        print(response.status)
+        if response.status == 'succeeded':
+            fullPayment = Payment.find_one(response.id)
+            full.payment_id = fullPayment.id
+            full.payment_status = fullPayment.status
+            full.created_at = fullPayment.created_at
+            full.expires_at = fullPayment.expires_at
+            full.status = True
+            full.save()
+            full.renta.paid = True
+            full.renta.save()
+            acc = Access.objects.create(
+                user = user,
+                renta = full.renta,
+                start = full.renta.start,
+                end = full.renta.end,
+                stype = True
+            )
+        user.usersdocuments.totlal_cancelation = 0
+        user.usersdocuments.save()
+        return True
 
 class Payments(models.Model):
     P_TYPES = (
@@ -351,9 +464,13 @@ class Payments(models.Model):
     expires_at = models.DateTimeField(null=True,blank=True)
     captured_at = models.DateTimeField(null=True,blank=True)
 
+    paym = PaymentsManager()
+    objects = models.Manager()
+
     class Meta:
         verbose_name = 'Транзакция Yandex'
         verbose_name_plural = 'Транзакции Yandex'
+
 
 class SystemLogs(models.Model):
     user = models.ForeignKey(User, models.DO_NOTHING,blank=True, null=True)
@@ -365,11 +482,16 @@ class SystemLogs(models.Model):
     rents = models.ForeignKey(Rents, on_delete=models.CASCADE,blank=True, null=True)
 
 class Access(models.Model):
+    PAID_TYPES = (
+        (False, 'Осмотр'),
+        (True, 'Аренда')
+    )
     user = models.ForeignKey(User, models.DO_NOTHING,blank=True, null=True)
     renta = models.ForeignKey(Rents, on_delete=models.CASCADE,blank=True, null=True)
     start = models.DateTimeField('Start',blank=True, null=True)
     end = models.DateTimeField('End',blank=True, null=True)
     used = models.IntegerField(blank=True, null=True,default=0)
+    stype = models.BooleanField(null=False,default=False,choices=PAID_TYPES)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -389,6 +511,7 @@ class Access(models.Model):
             if (now >= self.renta.start):
                 self.start = timezone.now()
                 self.end = self.start + timedelta(minutes=10)
+                self.stype = False
                 self.save()
         return False
 
