@@ -3,7 +3,7 @@ from celery.utils.log import get_task_logger
 from django.core.mail import send_mail
 from celery.task.schedules import crontab
 from celery.decorators import periodic_task
-from sharing.models import Access, Payments
+from sharing.models import Access, Payments, Rents
 from django.utils import timezone
 
 logger = get_task_logger(__name__)
@@ -21,14 +21,20 @@ def start_renta_task(renta,user):
 
 @periodic_task(
     run_every=(crontab(minute='*/1')),
-    name="task_save_latest_flickr_image",
+    name="check_current_rents",
     ignore_result=True
 )
-def task_save_latest_flickr_image():
-    """
-    Saves latest image from Flickr
-    """
-    #save_latest_flickr_image()
+def check_current_rents():
+    rents = Rents.objects.filter(start__gte=timezone.now(),booking__lte=timezone.now(),status=True,paid=False)
+
+    for i in rents:
+        if i.paid is False:
+            depo = Payments.paym.createDeposit(i.pk,i.rentor.pk)
+            print(depo)
+            full = Payments.paym.createFull(i.pk,i.rentor.pk)
+            print(full)
+            logger.info("Renta started. Reason: BOOKING TIME IS UP! {0}".format(i.pk))
+
     acc_list = Access.objects.filter(end__lte=timezone.now(),renta__status=True)
     for i in acc_list:
         if i.stype is False and i.renta.paid is False:
@@ -37,7 +43,7 @@ def task_save_latest_flickr_image():
             full = Payments.paym.createFull(i.renta.pk,i.user.pk)
             print(full)
 
-            logger.info("Renta start auto!")
+            logger.info("Renta started. Reason: no action!")
         
     logger.info("Checkin renta....")
     

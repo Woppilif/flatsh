@@ -230,6 +230,8 @@ class RentsManager(models.Manager):
     def createRent(self,flat,user,start,end):
         try:
             obj = self.create(flat=flat,rentor=user,start=start,end=end,status=True,created_at=timezone.now())
+            obj.booking = obj.start + timedelta(hours=2)
+            obj.save()
         except:
             return None
         Access.objects.create(
@@ -277,6 +279,7 @@ class Rents(models.Model):
     rentor = models.ForeignKey(User, models.DO_NOTHING)
     start = models.DateTimeField(verbose_name='Начало аренды')
     end = models.DateTimeField(verbose_name='Окончание аренды')
+    booking = models.DateTimeField(null=True,verbose_name='Окончание бронироваия')
     status = models.BooleanField(null=True,default=False)
     paid = models.BooleanField(null=True,default=False)
     created_at = models.DateTimeField(null=True,default=False)
@@ -500,6 +503,7 @@ class Access(models.Model):
     def CheckAccess(self):
         if self.end is not None:
             now = timezone.now()
+            print("{0} {1} {2}".format(now,self.start,self.end))
             if (now > self.start) and (now < self.end):
                 return True
         return False

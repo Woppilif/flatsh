@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'flatsharing.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'fs',
+        'NAME': 'fs2',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': '127.0.0.1', 

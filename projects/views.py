@@ -34,7 +34,7 @@ def projects(request):
     return render(request, 'projects/main.html', {'flats':flats,'project_list':project_list})
 
 def currentRentaDef(user):
-    ob = Rents.objects.filter(rentor=user,end__gt=timezone.now()).exclude(status__exact=None).last()
+    ob = Rents.objects.filter(rentor=user,end__gt=timezone.now()).exclude(status__exact=None).first()
     if ob is not None:
         return ob
     return ''
@@ -91,8 +91,10 @@ def save_book_form(request, form, template_name):
                 print('Renta object wasnt created!')
            
             if obj is not None:
+                '''
                 if timezone.now().hour >= 15 and timezone.now() >= ff.start:
                     rentaStart(request.user,obj.pk)
+                '''
                 if request.user.usersdocuments.totlal_cancelation > 2:
                     request.user.usersdocuments.totlal_cancelation = 0
                     request.user.usersdocuments.save()
@@ -171,15 +173,19 @@ def rentaStart(user,pk):
     print("rentaStart")
     renta = get_object_or_404(Rents,rentor=user,status=True,id = pk,paid=False)
     print(renta)
-    result = start_renta_task.delay(renta.pk,user.pk)
-    print (result)
-    print (result.ready())
-    print (result.get())
+    depo = Payments.paym.createDeposit(renta,user)
+    print(depo)
+    full = Payments.paym.createFull(renta,user)
+    print(full)
+    #result = start_renta_task.delay(renta.pk,user.pk)
+    #print (result)
+    #print (result.ready())
+    #print (result.get())
     return True
 
 @login_required(login_url='/accounts/login/')
 def access(request):
-    renta = Rents.objects.filter(rentor=request.user).exclude(status__exact=None).last()
+    renta = Rents.objects.filter(rentor=request.user,status=True).first()
     acc = renta.AccessObj() #get_object_or_404(Access, pk=pk,user=request.user)
     #print(acc.get_absolute_url())
     acc.setStartTime()
@@ -201,8 +207,7 @@ def access(request):
 @login_required(login_url='/accounts/login/')
 def rentCancel(request,pk):
     renta = get_object_or_404(Rents,rentor=request.user,status=True,id = pk,paid=False)
-    
-    if timezone.now().hour >= 15:
+    if timezone.now() >= renta.booking:
         return redirect('projects:flatPay',pk=renta.pk)
     else:
         renta.status = None
