@@ -7,6 +7,10 @@ from sharing.models import Rents
 import random
 from django.utils import timezone
 
-rents = Rents.objects.filter(start__gte=timezone.now(),booking__lte=timezone.now(),status=True,paid=False)
+Rents.objects.create(flat_id=1, rentor_id=1,start=datetime.now()-timedelta(days=3),end=datetime.now()-timedelta(days=2))
+
+print(Rents.objects.all())
+
+rents = Rents.objects.filter(start__gte=timezone.now(),end__lte=timezone.now())
 
 print(rents)

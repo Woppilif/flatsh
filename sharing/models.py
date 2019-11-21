@@ -316,7 +316,7 @@ class Rents(models.Model):
 
     def getPrice(self):
         return self.getDays() * self.flat.price
-
+    '''
     def save(self, *args, **kwargs):
         if not self.pk:
             if self.checkDates():
@@ -327,14 +327,17 @@ class Rents(models.Model):
                 days, hours = self.prolongRent()
                 if days >= 0 or hours >= 0:
                     super().save(*args, **kwargs)
-
+    '''
+    
     def checkDates(self):
         if self.end < self.start:
-            print("here 1")
+            print("END DATE LESS THAN START! ")
             return False
+        '''
         if self.start.date() < timezone.now().date():
             print("here 2")
             return False
+        '''
         if self.getAvailableHours() is not None:
             if self.start < self.getAvailableHours() and self.status is not None:
                 print("here 3")
@@ -483,6 +486,11 @@ class SystemLogs(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE,blank=True, null=True)
     payment = models.ForeignKey(Payments, on_delete=models.CASCADE,blank=True, null=True)
     rents = models.ForeignKey(Rents, on_delete=models.CASCADE,blank=True, null=True)
+    created_at = models.DateTimeField(null=True,blank=True)
+    comment = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return "{0} - {1}".format(self.comment,self.created_at)
 
 class Access(models.Model):
     PAID_TYPES = (

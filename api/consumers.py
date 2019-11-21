@@ -1,7 +1,8 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from django.utils import timezone
 from datetime import datetime
-from sharing.models import Flats
+from sharing.models import Flats, SystemLogs
 from channels.db import database_sync_to_async
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -10,7 +11,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = 'chat_%s' % self.room_name
         
 
-        print("Connected {0} {1}".format(self.room_group_name,datetime.now()))
+        print("=== Connected {0} {1}".format(self.room_group_name,datetime.now()))
+        await self.addLog(self.room_name,comment="Connected")
         if await self.get_flat(self.room_name) is True:
             await self.channel_layer.group_add('events', self.channel_name)
             # Join room group
@@ -18,8 +20,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 self.channel_name
             )
-        
-            print("HERE")
             await self.update_flat_status(self.room_name,True)
             await self.accept()
 
@@ -31,6 +31,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+        await self.addLog(self.room_name,comment="Disconnected")
 
     @database_sync_to_async
     def get_flat(self,id):
@@ -41,14 +42,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Flats.flas.update_flat_status(id,status)
         return True
 
+    @database_sync_to_async
+    def addLog(self,id,comment):
+        SystemLogs.objects.create(flat_id=int(id),created_at=timezone.now(),comment=comment)
+        return True
+
     # Receive message from WebSocket
     async def receive(self, text_data):
-        print("Received new message form {0}".format(self.room_group_name))
         text_data_json = text_data
-        
         message = text_data#text_data_json['message']
-
+        print("Received new message form {0}, {1}".format(self.room_group_name,message))
+        await self.addLog(self.room_name,comment=message)
         # Send message to room group
+        '''
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -56,6 +62,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': message
             }
         )
+        '''
 
     # Receive message from room group
     async def chat_message(self, event):

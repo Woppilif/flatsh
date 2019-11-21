@@ -1,1 +1,11 @@
-django >= 2.1.6, < 3.0 
+django
+celery
+channels
+channels-redis
+django-phone-field
+django-widget-tweaks
+Pillow
+redis
+websockets
+yandex-checkout
+psycopg2

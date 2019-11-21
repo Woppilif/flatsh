@@ -18,10 +18,11 @@ def index2(request,pk):
 def index3(request,group_name):
     
     
-    openDoorAPI(group_name,message = "update1")
+    openDoorAPI(group_name,message = "open",appid="90b412ebbe5abf003ba6999209ac36d6")
     return HttpResponse('<p>Done</p>')
 
 def openDoorAPI(flat_id,message = "hello",appid='key'):
+    print(flat_id,message,appid)
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("chat_{0}".format(flat_id), {
         'type': 'channel_message',

@@ -2,6 +2,21 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import *
+from api.views import openDoorAPI
+
+def open_door(modeladmin, request, queryset):
+    #queryset.update(status='p')
+    for i in queryset:
+        openDoorAPI(i.id,"open",i.app_id)
+
+open_door.short_description = "Open door"
+
+def update_softare(modeladmin, request, queryset):
+    #queryset.update(status='p')
+    for i in queryset:
+        openDoorAPI(i.id,"update",i.app_id)
+
+update_softare.short_description = "Update software"
 
 class ChoiceInline(admin.StackedInline):
     model = Images
@@ -20,6 +35,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('street','district','city','status','app_status')
     list_filter = ['district']
     search_fields = ['street']
+    actions = [update_softare,open_door]
 
 class RentsExtend(admin.ModelAdmin):
     inlines = [PaymentsInline,AccessInline]
@@ -43,3 +59,4 @@ admin.site.register(Payments)
 admin.site.register(Rents,RentsExtend)
 admin.site.register(Access)
 admin.site.register(UsersDocuments)
+admin.site.register(SystemLogs)
