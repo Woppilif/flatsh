@@ -11,4 +11,5 @@ urlpatterns = [
     path('accounts/addcard', views.UserAddCard, name='UserAddCard'),
     path('accounts/addcard/confirmation', views.UserAddCardConfirm, name='UserAddCardConfirm'),
     path('accounts/settings', views.UserSettingsMenu, name='settings'),
+    path('accounts/deletecard', views.deletecard, name='deletecard'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

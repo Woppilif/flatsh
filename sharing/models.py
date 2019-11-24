@@ -228,25 +228,7 @@ class Images(models.Model):
 class RentsManager(models.Manager):
 
     def createRent(self,flat,user,start,end):
-        try:
-            obj = self.create(flat=flat,rentor=user,start=start,end=end,status=True,created_at=timezone.now())
-            obj.booking = obj.start + timedelta(hours=2)
-            obj.save()
-        except:
-            return None
-        Access.objects.create(
-            user = user, renta=obj, start=obj.start
-        )
-        
-        return obj
-
-    def confirmRent(self,rent,user):
-        obj = self.get(id=rent.id,rentor=user)
-        obj.status = True
-        obj.save()
-    
-    def checkAvailability(self,flat):
-        pass
+        return self.create(flat=flat,rentor=user,start=start,end=end,status=True,created_at=timezone.now(),booking=timezone.now() + timedelta(hours=2))
 
     def cancelRent(self,rent,user):
         obj = self.get(id=rent.id,rentor=user)
@@ -271,8 +253,7 @@ class RentsManager(models.Manager):
             return True
         return False
 
-    def RentaStart(self):
-        pass
+    
 
 class Rents(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE,related_name="Квартира",related_query_name="Квартира")
@@ -316,6 +297,9 @@ class Rents(models.Model):
 
     def getPrice(self):
         return self.getDays() * self.flat.price
+
+    def getDeposit(self):
+        return self.flat.deposit
     '''
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -367,92 +351,101 @@ class Rents(models.Model):
 
 class PaymentsManager(models.Manager):
 
-    def createDeposit(self,renta,user):
-        renta = Rents.objects.get(pk=renta)
-        user = User.objects.get(pk=user)
-        deposit, created = self.get_or_create(
-            rentor = user,
-            renta = renta,
-            price = renta.flat.deposit,
-            date = timezone.now(),
-            payment_type = 'D'
-        )
+    def createPayment(self,renta = None,p_type = -1,user = None):
+        if p_type == 1:
+            price = renta.getDeposit()
+            addCard = False
+            payment_method = renta.rentor.usersdocuments.yakey
+            rentor = renta.rentor
+        elif p_type == 2:
+            price = renta.getPrice()
+            addCard = False
+            payment_method = renta.rentor.usersdocuments.yakey
+            rentor = renta.rentor
+        else:
+            price = 1
+            payment_method = None
+            addCard = True
+            rentor = user
 
-        depositPayment = Payment.create({
-            "amount": {
-                "value": renta.flat.deposit,
-                "currency": "RUB"
-            },
-            "payment_method_id": user.usersdocuments.yakey,
-            "description": "Заказ ID:{0} Оплата депозита".format(deposit.pk)
-        })
+        deposit, created = self.get_or_create(rentor = rentor,renta = renta,price = price,date = timezone.now(),payment_type = p_type)
+        paymentObjectId = self.paymentObject(price,payment_method,deposit.pk,addCard)
+        self.setData(paymentObjectId,deposit)
+        if p_type == 0:
+            return paymentObjectId
+            '''
+            if paymentObjectId.status == 'waiting_for_capture':
+                return paymentObjectId.payment_method.id
+            '''
 
-        deposit.payment_id = depositPayment.id
-        deposit.payment_status = depositPayment.status
-        deposit.created_at = depositPayment.created_at
-        deposit.expires_at = depositPayment.expires_at
-        deposit.status = True
-        deposit.save()
-        print("okas")
-        return True
+        elif p_type == 2:
+            response = self.capture(paymentObjectId,deposit.price)
+            if response.status == 'succeeded':
+                dbObject = self.setData(paymentObjectId,deposit)
+                dbObject.status = True
+                dbObject.save()
+                dbObject.renta.paid =  True
+                dbObject.renta.save()
+        return deposit
 
-    def createFull(self,renta,user):
-        renta = Rents.objects.get(pk=renta)
-        user = User.objects.get(pk=user)
-        full, created = self.get_or_create(
-            rentor = user,
-            renta = renta,
-            price = renta.getPrice(),
-            date = timezone.now(),
-            payment_type = 'F'
-        )
-
-        fullPayment = Payment.create({
-            "amount": {
-                "value": full.price,
-                "currency": "RUB"
-            },
-            "payment_method_id": user.usersdocuments.yakey,
-            "description": "Заказ ID:{0} Оплата аренды".format(full.pk)
-        })
-        idempotence_key = str(uuid.uuid4())
-        response = Payment.capture(
-            fullPayment.id,
+    def capture(self,paymentObject,value):
+        '''
+            paymentObject.id required!
+        '''
+        return Payment.capture(
+            paymentObject.id,
             {
                 "amount": {
-                "value": full.price,
-                "currency": "RUB"
+                    "value": value,
+                    "currency": "RUB"
                 }
             },
-            idempotence_key
+            str(uuid.uuid4()) #idempotence key
         )
-        print(response.status)
-        if response.status == 'succeeded':
-            fullPayment = Payment.find_one(response.id)
-            full.payment_id = fullPayment.id
-            full.payment_status = fullPayment.status
-            full.created_at = fullPayment.created_at
-            full.expires_at = fullPayment.expires_at
-            full.status = True
-            full.save()
-            full.renta.paid = True
-            full.renta.save()
-            acc = Access.objects.create(
-                user = user,
-                renta = full.renta,
-                start = full.renta.start,
-                end = full.renta.end,
-                stype = True
-            )
-        user.usersdocuments.totlal_cancelation = 0
-        user.usersdocuments.save()
-        return True
+
+    def cancel(self):
+        pass
+
+    def paymentObject(self, value = 1, method_id = '', payment_id = None, addCard = False):
+        if addCard:
+            return Payment.create({
+                "amount": {
+                    "value": value,
+                    "currency": "RUB"
+                },
+                "payment_method_data": {
+                "type": "bank_card"
+                },
+                "confirmation": {
+                    "type": "redirect",
+                    "return_url": "https://{0}/users/accounts/addcard/confirmation".format('127.0.0.1:8000')
+                },
+                "description": "Заказ ID:{0}".format(payment_id),
+                "save_payment_method": "true"
+                },str(uuid.uuid4()))
+        return Payment.create({
+            "amount": {
+                "value": value,
+                "currency": "RUB"
+            },
+            "payment_method_id": method_id,
+            "description": "Заказ ID:{0}".format(payment_id)
+        })
+
+    def setData(self,paymentObject,dbObject):
+        paymentObject = Payment.find_one(paymentObject.id)
+        dbObject.payment_id = paymentObject.id
+        dbObject.payment_status = paymentObject.status
+        dbObject.created_at = paymentObject.created_at
+        dbObject.expires_at = paymentObject.expires_at
+        dbObject.save()
+        return dbObject
 
 class Payments(models.Model):
     P_TYPES = (
-        ('P', 'Подтверждение аккаунта'),
-        ('D', 'Депозит'),
-        ('F', 'Полная стоимость')
+        (0, 'Подтверждение аккаунта'),
+        (1, 'Депозит'),
+        (2, 'Полная стоимость')
     )
     PAID_TYPES = (
         (False, 'Не оплачен'),
@@ -463,7 +456,7 @@ class Payments(models.Model):
     price = models.DecimalField(max_digits=10,decimal_places=2)
     date = models.DateTimeField()
     status = models.BooleanField(null=True,default=False,choices=PAID_TYPES)
-    payment_type = models.CharField(blank=True, null=True,choices=P_TYPES,default='D',max_length=1)
+    payment_type = models.IntegerField(blank=True, null=True,choices=P_TYPES,default=0)
     payment_id = models.CharField(max_length=50, blank=True, null=True)
     payment_status = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(null=True,blank=True)
@@ -492,6 +485,34 @@ class SystemLogs(models.Model):
     def __str__(self):
         return "{0} - {1}".format(self.comment,self.created_at)
 
+class AccessManager(models.Manager):
+    def createAccess(self,renta):
+        return self.create(user=renta.rentor,renta=renta,stype=False)
+
+    def createPaidAccess(self,renta):
+        if renta.paid is True:
+            return self.create(user=renta.rentor,renta=renta,stype=True,start=renta.start,end=renta.end)
+        return False
+
+    def setFreeTime(self):
+        if self.end is None:
+            now = timezone.now()
+            if (now >= self.renta.start):
+                self.start = now
+                self.end = self.start + timedelta(minutes=10)
+                self.save()
+                return self
+        return None
+
+    def setPaidTime(self):
+        if self.renta.paid is True:
+            self.start = self.renta.start,
+            self.end = self.renta.end,
+            self.stype = True
+            self.save()
+            return self
+        return None
+
 class Access(models.Model):
     PAID_TYPES = (
         (False, 'Осмотр'),
@@ -504,9 +525,33 @@ class Access(models.Model):
     used = models.IntegerField(blank=True, null=True,default=0)
     stype = models.BooleanField(null=False,default=False,choices=PAID_TYPES)
 
+    access = AccessManager()
+    objects = models.Manager()
+
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('sharing:access', args=[int(self.pk)])
+
+
+
+    def setFreeTime(self):
+        if self.end is None:
+            now = timezone.now()
+            if (now >= self.renta.start):
+                self.start = now
+                self.end = self.start + timedelta(minutes=10)
+                self.save()
+                return self
+        return None
+
+    def setPaidTime(self):
+        if self.renta.paid is True:
+            self.start = self.renta.start,
+            self.end = self.renta.end,
+            self.stype = True
+            self.save()
+            return self
+        return None
 
     def CheckAccess(self):
         if self.end is not None:
@@ -561,6 +606,8 @@ class UsersDocuments(models.Model):
     image_two = models.ImageField(upload_to=get_file_path_users,default=None,verbose_name="Фотография страницы с пропиской")
     status = models.BooleanField(null=False,default=False,choices=PAID_TYPES)
     yakey = models.CharField(max_length=50,default=None, blank=False, null=True)
+    ya_card_type = models.CharField(max_length=50,default=None, blank=False, null=True)
+    ya_card_last4 = models.CharField(max_length=4,default=None, blank=False, null=True)
     totlal_cancelation = models.IntegerField(null=True,default=0,blank=True)    
 
     def __str__(self):

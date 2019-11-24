@@ -3,3 +3,6 @@ media
 .vscode
 __pycache__
 data.json
+*/settings.py
+celerybeat.pid
+celerybeat-schedule

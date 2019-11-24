@@ -67,4 +67,4 @@ class RentForm(forms.ModelForm):
 
         if Rents.renta.RentedObjects(cd.get('start'),cd.get('end'),self.current_flat):
             self.add_error('start', "Данная дата уже занята")
-            self.add_error('end', "Данная дата уже занята")
+            self.add_error('end', "Данная дата уже занята")       

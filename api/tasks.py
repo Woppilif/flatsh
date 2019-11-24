@@ -35,7 +35,7 @@ def check_current_rents():
             print(full)
             logger.info("Renta started. Reason: BOOKING TIME IS UP! {0}".format(i.pk))
 
-    acc_list = Access.objects.filter(end__lte=timezone.now(),renta__status=True)
+    acc_list = Access.objects.filter(end__lte=timezone.now(),renta__status=True,stype=False)
     for i in acc_list:
         if i.stype is False and i.renta.paid is False:
             depo = Payments.paym.createDeposit(i.renta.pk,i.user.pk)

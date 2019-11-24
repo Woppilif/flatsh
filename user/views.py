@@ -30,6 +30,13 @@ def UserSettingsMenu(request):
         form = PasswordChangeForm(request.user)
     return render(request, 'user/settings.html', {'form': form,'rents':rents,'payments':payments})
 
+@login_required(login_url='/accounts/login/')
+def deletecard(request):
+    request.user.usersdocuments.yakey = None
+    request.user.usersdocuments.ya_card_type = None
+    request.user.usersdocuments.ya_card_last4 = None
+    request.user.usersdocuments.save()
+    return redirect('projects:list')
 
 @login_required(login_url='/accounts/login/')
 def UserDocuments(request):
@@ -56,35 +63,7 @@ def UserAddCard(request):
     except:
         return redirect('user:userDocuments')
     if request.method == 'POST':
-        payment, created = Payments.objects.get_or_create(
-            rentor = request.user,
-            renta_id = None,
-            price = 1,
-            date = timezone.now(),
-            payment_type = 'P'
-        )
-        idempotence_key = str(uuid.uuid4())
-        session_key = str(uuid.uuid4())
-        payment_object = Payment.create({
-            "amount": {
-                "value": payment.price,
-                "currency": "RUB"
-            },
-            "payment_method_data": {
-                "type": "bank_card"
-            },
-            "confirmation": {
-                "type": "redirect",
-                "return_url": "https://{0}/users/accounts/addcard/confirmation".format(ALLOWED_HOSTS[0])
-            },
-            "description": "Заказ ID:{0}".format(payment.pk),
-            "save_payment_method": "true"
-        }, idempotence_key)
-        payment.payment_id = payment_object.id
-        payment.payment_status = payment_object.status
-        payment.created_at = payment_object.created_at
-        payment.expires_at = payment_object.expires_at
-        payment.save()
+        payment_object = Payments.paym.createPayment(None,p_type=0,user=request.user)
         return redirect(payment_object.confirmation.confirmation_url)
     else:
 
@@ -97,13 +76,14 @@ def UserAddCardConfirm(request):
             return redirect('projects:list')
     except:
         return redirect('user:userDocuments')
-    payment_obj = Payments.objects.filter(rentor=request.user,payment_type = 'P').last()
+    payment_obj = Payments.objects.filter(rentor=request.user,payment_type = 0).last()
     payment = Payment.find_one(payment_obj.payment_id)
     if payment.status == 'waiting_for_capture':
         print(payment.payment_method.id)
         request.user.usersdocuments.yakey = payment.payment_method.id
+        request.user.usersdocuments.ya_card_type = payment.payment_method.card.card_type
+        request.user.usersdocuments.ya_card_last4 = payment.payment_method.card.last4
         request.user.usersdocuments.save()
-        payment.status
         idempotence_key = str(uuid.uuid4())
         response = Payment.capture(
             payment.id,

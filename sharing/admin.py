@@ -18,6 +18,12 @@ def update_softare(modeladmin, request, queryset):
 
 update_softare.short_description = "Update software"
 
+def get_log(modeladmin, request, queryset):
+    #queryset.update(status='p')
+    for i in queryset:
+        openDoorAPI(i.id,"sendlog",i.app_id)
+get_log.short_description = "Get log"
+
 class ChoiceInline(admin.StackedInline):
     model = Images
     extra = 2
@@ -35,7 +41,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('street','district','city','status','app_status')
     list_filter = ['district']
     search_fields = ['street']
-    actions = [update_softare,open_door]
+    actions = [update_softare,open_door,get_log]
 
 class RentsExtend(admin.ModelAdmin):
     inlines = [PaymentsInline,AccessInline]

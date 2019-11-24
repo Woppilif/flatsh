@@ -17,6 +17,12 @@
             <div class="text-center">
               <h1 class="h4 text-gray-900 mb-4">Настройки учётной записи</h1>
             </div>
+
+            <div class="text-center">
+              Привязанная карта: {{user.usersdocuments.ya_card_type}}
+              **** {{user.usersdocuments.ya_card_last4}} <a href="{% url 'user:deletecard' %}">Отвязать</a>
+            </div>
+
             <form method="post" action="{% url 'user:settings' %}" enctype='multipart/form-data'>
               {% csrf_token %}
               {% for field in form %}

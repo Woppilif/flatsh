@@ -11,9 +11,6 @@ from datetime import timedelta
 from django.utils import timezone
 from api.views import openDoorAPI
 from api.tasks import start_renta_task
-Configuration.account_id = 591310
-
-Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
 # Create your views here.
 
 
@@ -85,7 +82,9 @@ def save_book_form(request, form, template_name):
             ff = form.save(commit=False)
             try:
                 obj = Rents.renta.createRent(flat=form.current_flat,user=request.user,start=ff.start,end=ff.end)
-                print(obj)
+                access = Access.access.createAccess(obj)
+                print("Renta created {0}".format(obj))
+                print("And access {0}".format(access))
             except:
                 obj = None
                 print('Renta object wasnt created!')
@@ -166,28 +165,23 @@ def project_delete(request, pk):
 
 @login_required(login_url='/accounts/login/')
 def flatPay(request,pk):
-    rentaStart(request.user,pk)
+    renta = get_object_or_404(Rents,rentor=request.user,status=True,id = pk,paid=False)
+    deposit = Payments.paym.createPayment(renta=renta,p_type=1)
+    print("Renta deposit obj created {0}".format(deposit))
+    full = Payments.paym.createPayment(renta=renta,p_type=2)
+    print("Renta payment obj created {0}".format(full))
+    access = Access.access.createPaidAccess(full.renta)
+    print("And access {0}".format(access))
     return redirect('projects:list')
 
 def rentaStart(user,pk):
-    print("rentaStart")
-    renta = get_object_or_404(Rents,rentor=user,status=True,id = pk,paid=False)
-    print(renta)
-    depo = Payments.paym.createDeposit(renta,user)
-    print(depo)
-    full = Payments.paym.createFull(renta,user)
-    print(full)
-    #result = start_renta_task.delay(renta.pk,user.pk)
-    #print (result)
-    #print (result.ready())
-    #print (result.get())
     return True
 
 @login_required(login_url='/accounts/login/')
 def access(request):
     renta = Rents.objects.filter(rentor=request.user,status=True).first()
     acc = renta.AccessObj() #get_object_or_404(Access, pk=pk,user=request.user)
-    #print(acc.get_absolute_url())
+    print(acc)
     acc.setStartTime()
     if acc.CheckAccess():
         print("Signal sent to {0}".format(renta.flat.id))

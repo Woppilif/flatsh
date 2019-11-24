@@ -5,7 +5,7 @@ from . import views
 app_name = 'projects'
 
 urlpatterns = [
-    path('list/', views.projects, name='list'),
+    path('', views.projects, name='list'),
     path('create/<int:pk>', views.project_create, name='project_create'),
     path('update/<int:pk>', views.project_update, name='project_update'),
     path('delete/<int:pk>', views.project_delete, name='project_delete'),

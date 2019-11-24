@@ -129,7 +129,7 @@ $(function () {
 
 function clickOnFlat(flat_id,ltype='map'){
   $.ajax({
-    url: "/projects/flat/"+flat_id+"/"+ltype+"",
+    url: "/flat/"+flat_id+"/"+ltype+"",
     type: 'get',
     dataType: 'json',
     success: function (data) {

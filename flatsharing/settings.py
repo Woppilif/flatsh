@@ -156,6 +156,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+MEDIA_ROOT = os.path.join(BASE_DIR,'static')
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
@@ -165,7 +166,7 @@ EMAIL_HOST_USER = 'ewtm.info@gmail.com'
 EMAIL_HOST_PASSWORD = 'Arch2008'
 EMAIL_PORT = 587
 
-
+'''
 LOGGING_CONFIG = None
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
@@ -223,3 +224,4 @@ logging.config.dictConfig({
         'django.server': DEFAULT_LOGGING['loggers']['django.server'],
     },
 })
+'''
