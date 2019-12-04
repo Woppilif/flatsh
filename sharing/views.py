@@ -2,16 +2,58 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.http import JsonResponse
-from .models import Rents, Flats, Images, UsersDocuments, Payments
+from .models import Rents, Flats, Images, UsersDocuments, Payments, Access
 from .forms import FlatEditForm, FlatImagesForm
 from django.contrib import messages
 from django.contrib.auth.models import User
+import uuid
+from projects.forms import RentFormEx
+def checkRoleManager(request):
+    if request.user.workers.role != 1:
+        return redirect('projects:list')
+    return False
 
 def index(request):
-    if request.user.is_authenticated:
-        return redirect("projects:list")
-    return render(request,"home.html")
+    if checkRoleManager(request):
+        return checkRoleManager(request)
+    rents = Rents.objects.all().order_by('-start')
+    return render(request,"trial/index.html",{"rents":rents})
 
+def save_trial_form(request, form, template_name):
+    data = dict()
+    if request.method == 'POST':
+        if form.is_valid():
+            ff = form.save(commit=False) #
+            flat =  Flats.objects.get(pk=int(request.POST.get("flat")))
+            obj = Rents.renta.createRent(flat=flat,user=request.user,start=ff.start,end=ff.end)
+            obj.status = True
+            obj.paid =  True
+            obj.trial_key = str(uuid.uuid4())
+            obj.save()
+            access = Access.access.createPaidAccess(obj)
+            print("Renta created {0}".format(obj))
+            print("And access {0}".format(access))
+            
+            data['form_is_valid'] = True
+            rents = Rents.objects.all().order_by('-start')
+            data['html_book_list'] = render_to_string('trial/includes/partial_book_list.html', {
+                'rents':rents
+            })
+        else:
+            data['form_is_valid'] = False
+    context = {'form': form}
+    data['html_form'] = render_to_string(template_name, context, request=request)
+    return JsonResponse(data)
+
+@login_required(login_url='/accounts/login/')
+def trial_create(request):
+    if request.method == 'POST':
+        form = RentFormEx(data=request.POST)
+    else:
+        form = RentFormEx()
+    return save_trial_form(request, form, 'trial/includes/partial_book_create.html')
+
+'''
 @login_required(login_url='/accounts/login/')
 def managers(request):
     print(request.user.workers.account)
@@ -47,10 +89,7 @@ def blockUser(request,pk = None):
     return redirect('sharing:users',pk=pk)
 
 
-def checkRoleManager(request):
-    if request.user.workers.role != 1:
-        return redirect('projects:list')
-    return False
+
 
 
 @login_required(login_url='/accounts/login/')
@@ -130,7 +169,7 @@ def manager_update(request, pk):
         form = FlatEditForm(instance=book,current_user=request.user)
     return save_book_form(request, form, 'managers/includes/partial_book_update.html')
 
-'''
+
 def manager_delete(request, pk):
     book = get_object_or_404(Rents, pk=pk)
     data = dict()

@@ -36,6 +36,7 @@ LOGOUT_REDIRECT_URL = '/accounts/login'
 # Application definition
 
 INSTALLED_APPS = [
+    'bot_api.apps.BotApiConfig',
     'user.apps.UserConfig',
     'projects.apps.ProjectsConfig',
     'api.apps.ApiConfig',

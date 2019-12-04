@@ -13,6 +13,12 @@ from api.views import openDoorAPI
 from api.tasks import start_renta_task
 # Create your views here.
 
+def trial_renta(request, trial_key):
+    flats = get_object_or_404(Rents,trial_key=trial_key,status=True,paid=True)
+    flats = [flats]
+    return render(request, 'projects/trial.html', {'flats':flats})
+
+
 
 @login_required(login_url='/accounts/login/')
 def projects(request):
@@ -210,3 +216,20 @@ def rentCancel(request,pk):
         request.user.usersdocuments.save()
     return redirect('projects:list')
 
+def trial_access(request,trial_key):
+    renta = Rents.objects.filter(trial_key=trial_key,status=True).first()
+    acc = renta.AccessObj() #get_object_or_404(Access, pk=pk,user=request.user)
+    print(acc)
+    acc.setStartTime()
+    if acc.CheckAccess():
+        print("Signal sent to {0}".format(renta.flat.id))
+        acc.usedAdd()
+        openDoorAPI(renta.flat.id,'open',renta.flat.app_id)
+    else:
+        print("Rights expired!")
+    data = dict()
+    data['html_book_list'] = render_to_string('projects/flats/trial.html', {
+                'flats':[renta]
+    })
+    data['form_is_valid'] = True
+    return JsonResponse(data)

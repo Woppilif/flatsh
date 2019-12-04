@@ -74,7 +74,6 @@ $(function () {
         $("#modal-book").modal("show");
       },
       success: function (data) {
-        //$("#map-block").html(data.html_form);
         $("#modal-book .modal-content").html(data.html_form);
       }
     });
@@ -89,10 +88,8 @@ $(function () {
       dataType: 'json',
       success: function (data) {
         if (data.form_is_valid) {
+          $("#book-table tbody").html(data.html_book_list);
           $("#modal-book").modal("hide");
-          $("#map-block").html(data.html_book_list);
-          $("#rentCard").html(data.user_bar);
-          
         }
         else {
           $("#modal-book .modal-content").html(data.html_form);
@@ -115,6 +112,7 @@ $(function () {
 
   $("#main").on("click", ".Buchen", loadForm);
 
+  // Update book
   $("#modal-book").on("submit", ".js-book-create-form", saveForm);
 
   // Update book
@@ -124,7 +122,6 @@ $(function () {
   // Delete book
   $("#book-table").on("click", ".js-delete-book", loadForm);
   $("#modal-book").on("submit", ".js-book-delete-form", saveForm);
-
 });
 
 function clickOnFlat(flat_id,ltype='map'){

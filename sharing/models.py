@@ -56,6 +56,7 @@ class Workers(models.Model):
     partner = models.ForeignKey(Partners, on_delete=models.CASCADE)
     account = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.IntegerField(choices=SHIRT_SIZES)
+    chat_id = models.IntegerField(default=None,blank=True,null=True)
     def __str__(self):
         return str(self.account)
 
@@ -264,12 +265,18 @@ class Rents(models.Model):
     status = models.BooleanField(null=True,default=False)
     paid = models.BooleanField(null=True,default=False)
     created_at = models.DateTimeField(null=True,default=False)
+    trial_key = models.CharField(max_length=80, blank=True, null=True,default=None)
     renta = RentsManager()
     objects = models.Manager()
     class Meta:
         verbose_name = 'Аренда'
         verbose_name_plural = 'Аренды'
         ordering = ['-start']
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        if self.trial_key is not None:
+            return reverse('projects:trial_renta', args=[self.trial_key])
 
     def __str__(self):
         return "{0} с {1} по {2}".format(self.flat,self.start,self.end)
@@ -451,7 +458,7 @@ class Payments(models.Model):
         (False, 'Не оплачен'),
         (True, 'Оплачен')
     )
-    rentor = models.ForeignKey(User, models.DO_NOTHING)
+    rentor = models.ForeignKey(User, models.DO_NOTHING,blank=True, null=True)
     renta = models.ForeignKey(Rents, on_delete=models.CASCADE,blank=True, null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
     date = models.DateTimeField()

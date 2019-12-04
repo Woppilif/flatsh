@@ -24,6 +24,12 @@ def get_log(modeladmin, request, queryset):
         openDoorAPI(i.id,"sendlog",i.app_id)
 get_log.short_description = "Get log"
 
+def get_ping(modeladmin, request, queryset):
+    #queryset.update(status='p')
+    for i in queryset:
+        openDoorAPI(i.id,"ping",i.app_id)
+get_ping.short_description = "Send ping"
+
 class ChoiceInline(admin.StackedInline):
     model = Images
     extra = 2
@@ -41,7 +47,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('street','district','city','status','app_status')
     list_filter = ['district']
     search_fields = ['street']
-    actions = [update_softare,open_door,get_log]
+    actions = [update_softare,open_door,get_log,get_ping]
 
 class RentsExtend(admin.ModelAdmin):
     inlines = [PaymentsInline,AccessInline]

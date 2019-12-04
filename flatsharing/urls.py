@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/', include('api.urls',namespace='api')),
     path('', include('projects.urls',namespace='projects')),
     path('users/', include('user.urls',namespace='user')),
+    path('bots/', include('bot_api.urls',namespace='bot_api')),
 ]
 

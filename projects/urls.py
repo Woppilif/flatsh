@@ -20,5 +20,7 @@ urlpatterns = [
     path('access/', views.access, name='access'),
     path('cancel/<int:pk>', views.rentCancel, name='rentCancel'),
 
+    path('trial/<uuid:trial_key>', views.trial_renta, name='trial_renta'),
+    path('trial_open/<uuid:trial_key>', views.trial_access, name='trial_access'),
 
 ]
