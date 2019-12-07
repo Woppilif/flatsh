@@ -6,3 +6,4 @@ data.json
 */settings.py
 celerybeat.pid
 celerybeat-schedule
+sharing/migrations/

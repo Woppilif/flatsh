@@ -1,8 +1,7 @@
 {% for item in rents %}
 <tr>
 
-  <td>{{ item.flat.addressPartOne }} {{ item.flat.addressPartTwo }}</td>
-  <td>{{ item.start }} - {{ item.end }}</td>
+  <td>{{ item.flat.addressPartOne }} {{ item.flat.addressPartTwo }}</br><strong>{{ item.start }} - {{ item.end }}</strong></td>
   <td>ewtm.ru{{ item.get_absolute_url }}</td>  
 </tr>
 {% empty %}
