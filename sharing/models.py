@@ -9,10 +9,12 @@ from django.utils import timezone
 from django.db.models import Q
 from PIL import Image
 from yandex_checkout import Payment,Configuration 
+from django.conf import settings
+from phone_field import PhoneField
 
-Configuration.account_id = 591310
+Configuration.account_id = settings.YA_ACCOUNT_ID
+Configuration.secret_key = settings.YA_SECRET_KEY
 
-Configuration.secret_key = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
 #from .managers import PersonManager
 
 # Create your models here.
@@ -128,6 +130,7 @@ class Flats(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    hint = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=10,blank=True, null=True,choices=FLAT_STATS)
     door_status = models.BooleanField(blank=True, null=True,choices=DOOR_STATS)
     cleaning_time = models.TimeField(blank=True, null=True,default="3:00")
@@ -139,6 +142,10 @@ class Flats(models.Model):
 
     def __str__(self):
         return "{0} {1}".format(self.street,self.district.district_name)
+    
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('rents:apartment', args=[int(self.pk)])
 
     def addressPartOne(self):
         return "{0}, {1}, {2} {3}".format(self.city(),self.district,self.street,self.HouseNumber())
@@ -153,6 +160,9 @@ class Flats(models.Model):
 
     def city(self):
         return self.district.city()
+
+    def address(self):
+        return "{0} {1}".format(self.street,self.HouseNumber())
 
     city.admin_order_field = 'city'
     city.short_description = 'Город'
@@ -176,6 +186,12 @@ class Flats(models.Model):
             return "Занята"
         return "Свободна"
 
+    def getImages(self):
+        return Images.objects.filter(flat_id=self.pk)
+    
+    def getPreview(self):
+        return Images.objects.filter(flat_id=self.pk).first()
+
 def get_file_path(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
@@ -194,6 +210,10 @@ class Images(models.Model):
     class Meta:
         verbose_name = 'Изображение'
         verbose_name_plural = 'Изображения'
+
+    def delete(self, *args, **kwargs):
+        os.remove(os.path.join(settings.MEDIA_ROOT, str(self.images)))
+        super(Images,self).delete(*args,**kwargs)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -276,11 +296,16 @@ class Rents(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         if self.trial_key is not None:
-            return reverse('projects:trial_renta', args=[self.trial_key])
+            return reverse('rents:trial_renta', args=[self.trial_key])
 
     def __str__(self):
         return "{0} с {1} по {2}".format(self.flat,self.start,self.end)
     
+    def status_info(self):
+        if self.status is True:
+            return 'Подтверждена'
+        return 'Не подтверждена'
+
     def Location(self):
         return self.flat
 
@@ -375,16 +400,14 @@ class PaymentsManager(models.Manager):
             addCard = True
             rentor = user
 
-        deposit, created = self.get_or_create(rentor = rentor,renta = renta,price = price,date = timezone.now(),payment_type = p_type)
+        deposit, created = self.get_or_create(rentor = rentor,renta = renta,price = price,payment_type = p_type)
+        if created is True:
+            deposit.date = timezone.now()
+            deposit.save()
         paymentObjectId = self.paymentObject(price,payment_method,deposit.pk,addCard)
         self.setData(paymentObjectId,deposit)
         if p_type == 0:
             return paymentObjectId
-            '''
-            if paymentObjectId.status == 'waiting_for_capture':
-                return paymentObjectId.payment_method.id
-            '''
-
         elif p_type == 2:
             response = self.capture(paymentObjectId,deposit.price)
             if response.status == 'succeeded':
@@ -425,7 +448,7 @@ class PaymentsManager(models.Manager):
                 },
                 "confirmation": {
                     "type": "redirect",
-                    "return_url": "https://{0}/users/accounts/addcard/confirmation".format('127.0.0.1:8000')
+                    "return_url": "http://{0}/card/{1}".format(settings.ALLOWED_HOSTS[0],payment_id)
                 },
                 "description": "Заказ ID:{0}".format(payment_id),
                 "save_payment_method": "true"
@@ -456,12 +479,13 @@ class Payments(models.Model):
     )
     PAID_TYPES = (
         (False, 'Не оплачен'),
-        (True, 'Оплачен')
+        (True, 'Оплачен'),
+        (None, 'Отменён / Возвращён')
     )
     rentor = models.ForeignKey(User, models.DO_NOTHING,blank=True, null=True)
     renta = models.ForeignKey(Rents, on_delete=models.CASCADE,blank=True, null=True)
     price = models.DecimalField(max_digits=10,decimal_places=2)
-    date = models.DateTimeField()
+    date = models.DateTimeField(null=True,blank=True)
     status = models.BooleanField(null=True,default=False,choices=PAID_TYPES)
     payment_type = models.IntegerField(blank=True, null=True,choices=P_TYPES,default=0)
     payment_id = models.CharField(max_length=50, blank=True, null=True)
@@ -472,6 +496,20 @@ class Payments(models.Model):
 
     paym = PaymentsManager()
     objects = models.Manager()
+
+    def get(self):
+        return Payment.find_one(self.payment_id)
+
+    def cancel(self):
+        self.status = None
+        self.save()
+        return Payment.cancel(self.payment_id,str(uuid.uuid4()))
+    
+    def status_info(self):
+        return [i[1] for i in self.P_TYPES if i[0] == self.payment_type][0]
+
+    def paid_info(self):
+        return [i[1] for i in self.PAID_TYPES if i[0] == self.status][0]
 
     class Meta:
         verbose_name = 'Транзакция Yandex'
@@ -498,7 +536,7 @@ class AccessManager(models.Manager):
 
     def createPaidAccess(self,renta):
         if renta.paid is True:
-            return self.create(user=renta.rentor,renta=renta,stype=True,start=renta.start,end=renta.end)
+            return self.get_or_create(user=renta.rentor,renta=renta,stype=True,start=renta.start,end=renta.end)
         return False
 
     def setFreeTime(self):
@@ -580,14 +618,15 @@ class Access(models.Model):
         return False
 
     def timeRemaining(self):
+        import time
         if self.end is not None:
             now = timezone.now()
             if (now > self.start) and (now < self.end):
-                return "{0} осталось".format(str(self.end - now))
+                return "у вас осталось {0} минут".format(str(self.end - now))
             else:
                 if (now < self.start):
                     return "Доступна с {0}".format(self.start.strftime("%b %d %Y %H:%M:%S"))
-                return "[Не доступно]"
+                return "Время осмотра закончилось"
         else:
             return "10 минут осталось"
 
@@ -608,7 +647,8 @@ class UsersDocuments(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     firstname = models.CharField(max_length=50,default="", blank=False, null=False,verbose_name="Имя")
     lastname = models.CharField(max_length=50,default="", blank=False, null=False,verbose_name="Фамилия")
-    phone_number = models.CharField(max_length=50,default="", blank=False, null=False,verbose_name="Мобильный номер")
+    phone_number = PhoneField(blank=True, help_text='Contact phone number')
+    #phone_number = models.CharField(max_length=50,default="", blank=False, null=False,verbose_name="Мобильный номер")
     image_one = models.ImageField(upload_to=get_file_path_users,default=None,verbose_name="Фотография первой страницы паспорта")
     image_two = models.ImageField(upload_to=get_file_path_users,default=None,verbose_name="Фотография страницы с пропиской")
     status = models.BooleanField(null=False,default=False,choices=PAID_TYPES)
@@ -624,6 +664,12 @@ class UsersDocuments(models.Model):
         verbose_name = 'Документы пользователей'
         verbose_name_plural = 'Документы пользователей'
     
+class Favorites(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    flat = models.ForeignKey(Flats, on_delete=models.CASCADE,blank=True, null=True)
+    class Meta:
+        verbose_name = 'Закладка пользователя'
+        verbose_name_plural = 'Закладки пользователей'
 
 
 

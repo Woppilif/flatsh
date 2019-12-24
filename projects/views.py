@@ -9,14 +9,15 @@ import uuid
 from yandex_checkout import Payment,Configuration 
 from datetime import timedelta
 from django.utils import timezone
-from api.views import openDoorAPI
-from api.tasks import start_renta_task
+from sharing.views import opener as rents
+from sharing.tasks import start_renta_task
 # Create your views here.
 
 def trial_renta(request, trial_key):
     flats = get_object_or_404(Rents,trial_key=trial_key,status=True,paid=True)
     flats = [flats]
     return render(request, 'projects/trial.html', {'flats':flats})
+
 
 
 
@@ -192,7 +193,7 @@ def access(request):
     if acc.CheckAccess():
         print("Signal sent to {0}".format(renta.flat.id))
         acc.usedAdd()
-        openDoorAPI(renta.flat.id,'open',renta.flat.app_id)
+        rents.openDoorAPI(renta.flat.id,'open',renta.flat.app_id)
     else:
         print("Rights expired!")
     data = dict()

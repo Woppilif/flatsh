@@ -1,0 +1,89 @@
+body {
+	padding-top: 68px;
+	padding-bottom: 50px; 
+}
+
+@media screen and (max-width: 760px) {
+	body {
+		padding-top: 95px;
+		font-size: 15px;
+	}
+}
+
+@media screen and (max-width: 680px) {
+	body {
+		padding-top: 95px;
+		font-size: 12px;
+	}
+
+	.h {
+		font-size: 0.7rem !important;
+	}
+}
+
+@media screen and (max-width: 505px) {
+	body {
+		padding-top: 95px;
+		font-size: 11px;
+	}
+}
+
+
+.active {
+	border-bottom: 1px solid #bdbdbd;
+}
+
+h2 {
+	font-size: 1.4rem;
+	margin: 2rem 0 1rem 0;
+}
+
+.options {
+	width: 100%;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 100%;
+}
+
+.save_pass {
+	font-size: 1.1rem;
+	display: flex;
+	width: 12rem;
+	height: 3.3rem;
+	align-items: center;
+	justify-content: center;
+	border-radius: 25px;
+	background-color: #0048b4;
+	color: #fff;
+	margin: 1rem auto;
+}
+
+.form .option {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	margin: 0.4rem 0; 
+}
+
+.form .option input {
+	width: 70%;
+	border-radius: 6px;
+	border: 1px solid #002c5f;
+	box-shadow: 0;
+}
+
+.block {
+	border-bottom: 1px solid #002c5f;
+	color: #002c5f;
+	padding: 3px 0;
+}
+
+.block .h {
+	color: #000;
+	font-size: 1.1rem;
+	margin: 8px 0; 
+}

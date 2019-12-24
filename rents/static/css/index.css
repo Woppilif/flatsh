@@ -1,0 +1,78 @@
+.bg-cont {
+	height: 100vh;
+	background: url("../imgs/index-bgpng.png") center center / cover;
+}
+
+.search {
+	display: none;
+}
+
+.menu {
+	display: none;
+}
+
+h1 {
+	font-size: 148px;
+	font-weight: bold;
+	color: #fff;
+}
+
+p {
+	color: #fff;
+	margin: 0;
+}
+
+.btn_bg {
+	height: 3.7rem !important;
+	width: 17rem !important;
+	border-radius: 3rem !important;
+}
+
+.condit	{
+	display: flex;
+	justify-content: space-between;
+}
+
+.condit div {
+	width: 200px;
+}
+
+.flat {
+	padding: 0 20px
+}
+
+.flat .wrap {
+	padding: 150px 0 20px 0; 
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.condit p {
+	position: absolute;
+	right: 20px;
+	bottom: 10px;
+}
+
+
+@media screen and (max-width: 770px) {
+	h1 {
+		font-size: 80px;
+	}
+}
+
+@media screen and (max-width: 440px) {
+	h1 {
+		font-size: 60px;
+	}
+
+	.btn a {
+		font-size: 18px;
+		width: 250px;
+	}
+
+	.condit a {
+		font-size: 13px;
+	}
+}

@@ -1,0 +1,21 @@
+.section .wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+}
+
+.geo {
+	font-size: 1.4rem;
+	font-weight: 500;
+	margin: 0.5rem 0;
+}
+.code {
+	font-size: 1.2rem;
+}
+
+.btns {
+	display: flex;
+	width: 80%;
+	justify-content: space-around;
+}

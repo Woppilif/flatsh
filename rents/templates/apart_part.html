@@ -1,0 +1,32 @@
+{% load static %}
+<section>
+    <div class="apartment">
+        <div class="photo">
+            <div class="slider">
+                {% for img in flat.getImages %}
+                    <img src="/media/{{img.images}}" alt="apart">
+                    {%empty%}
+                    <img src="{% static 'imgs/apartment-slide.png' %}" alt="apart">
+                {%endfor%}
+            </div>
+        </div>
+        <div class="info">
+            <div class="geo">
+                <p>{{flat.city}}</p>
+                <p>{{flat.address}}</p>
+            </div>
+            <div class="price">
+                <p class="per_hour">{{flat.price}} руб/сутки</p>
+                <p class="first_hours">-<!--Первые 2 часа 600 руб--></p>
+            </div>
+            <div class="descrip">
+                {{flat.description| safe | linebreaks}}
+            </div>
+
+            <div class="star">
+                <a href="{%url 'rents:favoritesAdd' flat.pk %}"><i class="fas fa-star"></i></a>
+            </div>
+        </div>
+
+    </div>
+</section>

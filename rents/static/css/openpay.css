@@ -1,0 +1,150 @@
+body {
+	padding-top: 68px;
+}
+
+@media screen and (max-width: 760px) {
+	body {
+		padding-top: 95px;
+		font-size: 15px;
+	}
+}
+
+@media screen and (max-width: 680px) {
+	body {
+		padding-top: 95px;
+		font-size: 12px;
+	}
+}
+
+@media screen and (max-width: 505px) {
+	body {
+		padding-top: 95px;
+		font-size: 9px;
+	}
+}
+
+.apartment {
+	display: flex;
+	justify-content: center;
+}
+
+.apartment .photo {
+	max-width: 33rem;
+}
+
+.info {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	padding: 3.1rem 1.2rem;
+	position: relative;
+}
+
+.geo p {
+	font-size: 1.6rem;
+	font-weight: bold;
+	line-height: 100%;
+}
+
+.price .per_hour {
+	font-size: 1.5rem;
+}
+
+.price .first_hours {
+	font-size: 0.95rem;
+	color: #bdbdbd;
+}
+
+.descrip {
+	font-size: 0.9rem;
+}
+
+.ps {
+	font-size: 0.85rem
+}
+
+.star a {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	color: #7b7b7b;
+}
+
+@media screen and (max-width: 1020px) {
+	.apartment {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.apartment .photo{
+		max-width: 40rem;
+	}
+}
+
+@media screen and (max-width: 700px) {
+	.apartment .photo{
+		max-width: 30rem;
+	}
+	.null {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 500px) {
+	.apartment .photo{
+		max-width: 24rem;
+	}
+}
+
+
+
+.price {
+	margin-top: 0.6rem
+}
+
+.price p {
+	font-size: 1.3rem;
+	margin: -3px 0;
+}
+
+.price .total {
+	margin: 0.7rem 0 0rem 0;
+	font-size: 1.33rem;
+	color: #0048b4;
+}
+
+
+
+
+.btns {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+
+.btns .pay-btns {
+	display: flex;
+	width: 60%;
+	margin-top: 20px;
+	justify-content: space-around;
+}
+
+.btns .pay-btns a {
+	margin: 0 5px;
+}
+
+.descrip .back {
+	color: #bdbdbd;
+	font-size: 0.8rem
+}
+
+.descrip .cod {
+	font-size: 1.1rem;
+	font-weight: 500;
+	margin: 0.4rem 0 0.4rem 0;
+}
+
+.descrip div p {
+	margin: -2px 0;
+}

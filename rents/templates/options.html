@@ -1,0 +1,104 @@
+{% extends 'body.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/options.css' %}">
+<section>
+	<div class="wrap">
+		<div class="options">
+			<h2>Настройка учетной записи</h2>
+			<div class="text-center">
+					Привязанная карта: {{user.usersdocuments.ya_card_type}}
+					**** {{user.usersdocuments.ya_card_last4}} <a style="color: blue;" href="{% url 'rents:card' 'delete' %}">Отвязать</a>
+				  </div>
+	  
+			<form class="container" method="post" action="{% url 'rents:options' %}" enctype='multipart/form-data'>
+				{% csrf_token %}
+				<div class="form">
+					{% for field in form %}
+					<label for="{{ field.id_for_label }}">{{ field.label }}</label>
+					{% render_field field class="option" %}
+						{% for error in field.errors %}
+							<p class="help-block">{{ error }}</p>
+						{% endfor %}
+					{% endfor %}
+					<button class="save_pass" type="submit">Сохранить</button>
+				</div>
+			</form>
+
+			
+		</div>
+		<div class="transaction">
+			<h2>История транзакций</h2>
+			<div>
+				<div class="block">
+					<div class="row h">
+						<div class="rent col-7">
+							<span>Аренда</span> 
+						</div>
+						<div class="price col-3">
+							<span>Стоимость и статус</span> 
+						</div>
+						<div class="type col-2">
+							<span>Тип</span> 
+						</div>
+					</div>
+				</div>
+				{% for payment in payments%}
+				<div class="block">
+					<div class="row">
+						<div class="rent col-7">
+							<span>{{payment.renta.flat}}</span>
+						</div>
+						<div class="price col-3">
+							<span>{{payment.price}} / {{payment.paid_info}}</span>
+						</div>
+						<div class="type col-2">
+							<span>{{payment.status_info}}</span>
+						</div>
+					</div>
+				</div>
+				{%endfor%}
+
+
+			</div>
+		</div>
+		<div class="rents">
+			<h2>История аренд</h2>
+			<div>
+				<div class="block">
+					<div class="row h">
+						<div class="rent col-3">
+							<span>Адрес</span> 
+						</div>
+						<div class="price col-6">
+							<span>Даты</span> 
+						</div>
+						<div class="type col-3">
+							<span>Статус</span> 
+						</div>
+					</div>
+				</div>
+				{% for rent in rents%}
+				<div class="block">
+					<div class="row">
+						<div class="rent col-3">
+							<span>{{rent.flat}}</span>
+						</div>
+						<div class="price col-6">
+							<span> с {{rent.start}} по {{rent.end}}</span>
+						</div>
+						<div class="type col-3">
+							<span>{{rent.status_info}}</span>
+						</div>
+					</div>
+				</div>
+				{%endfor%}
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock %}

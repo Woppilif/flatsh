@@ -1,0 +1,33 @@
+{% extends 'body.html' %}
+{% load static %}
+{% block content %}
+{% load widget_tweaks %}
+<link rel="stylesheet" href="{% static 'css/registration.css' %}">
+<form class="reg" method="POST">
+	{% csrf_token %}
+	<h1>Пройдем короткую регистрацию</h1>
+	{% for field in form %}
+    <div class="form-group{% if field.errors %} has-error{% endif %}">
+		<div class="{{ field.help_text }}">
+		<p>{{ field.label }}</p>
+		{% render_field field %}
+		</div>
+		{% for error in field.errors %}
+			<p class="help-block" style="color: red;">{{ error }}</p>
+		{% endfor %}
+    </div>
+    {% endfor %}
+	<!--<div class="num">
+		<p>Введите номер телефона</p>
+		<input type="text" id='id_phone' name='phone'>
+	</div>
+	<div class="mail">
+		<p>Укажите вашу почту</p>
+		<input type="email" id='id_email' name='email'>
+	</div>-->
+	<p class="gr">На нее будут приходить отчеты об аренде и квитанции</p>
+	<button type="submit">Далее</button>
+	
+</form>
+
+{% endblock %}

@@ -1,0 +1,68 @@
+.wrap {
+	max-width: 870px !important;
+}
+
+body {
+	padding-top: 68px;
+}
+
+@media screen and (max-width: 760px) {
+	body {
+		padding-top: 95px;
+		font-size: 15px;
+	}
+}
+
+@media screen and (max-width: 680px) {
+	body {
+		padding-top: 95px;
+		font-size: 12px;
+	}
+}
+
+@media screen and (max-width: 505px) {
+	body {
+		font-size: 9px;
+	}
+}
+
+.act {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.act .time {
+	font-size: 2.1rem;
+	font-weight: bold;
+	text-transform: uppercase;
+	color: #0048b4;
+	margin: 0.6rem 0 0 0;
+}
+
+
+
+.act h1 {
+	font-size: 1.3rem;
+	font-weight: 550;
+	text-transform: uppercase;
+	margin: 1rem 0;
+}
+
+.descrip div {
+	font-size: 1rem;
+	margin: 3rem 0;
+}
+
+.btns {
+	display: flex;
+	justify-content: space-around;
+}
+
+.btns a {
+	margin: 1rem 0;
+}
+
+.btns .btn_bg {
+	width: 14rem !important;
+}

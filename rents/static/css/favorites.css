@@ -1,0 +1,142 @@
+body {
+	padding-top: 68px;
+}
+
+@media screen and (max-width: 760px) {
+	body {
+		padding-top: 95px;
+		font-size: 15px;
+	}
+}
+
+@media screen and (max-width: 680px) {
+	body {
+		padding-top: 95px;
+		font-size: 12px;
+	}
+}
+
+@media screen and (max-width: 505px) {
+	body {
+		padding-top: 95px;
+		font-size: 9px;
+	}
+}
+
+
+
+.list {
+	display: flex;
+	flex-direction: column;
+	margin-top: 0.7rem
+}
+
+.spis {
+	font-size: 1.33rem;
+}
+
+.spis span {
+	font-size: 1.4rem;
+	color: #bdbdbd;
+}
+
+.sort {
+	display: flex;
+	border-bottom: 1px solid #bdbdbd;
+	padding-bottom: 0.4rem 
+}
+
+.sort div {
+	margin-right: 2rem;
+}
+
+.sort .sorting {
+	display: flex;
+	align-items: center;
+	width: 7.7rem;
+	justify-content: space-between;
+}
+
+.sort a {
+	color: #bdbdbd;
+}
+
+.sort a:hover {
+	color: #0048b4;
+}
+
+a.bl {
+	color: #0048b4;
+}
+
+
+
+
+
+
+
+.apartment {
+	position: relative;
+}
+
+.apartment {
+	display: flex;
+	width: 100%;
+	padding: 0.55rem 0;
+	align-items: center;
+	border-bottom: 1px solid #bdbdbd;
+}
+
+.apartment .photo {
+	position: relative;
+	margin-right: 0.4rem; 
+}
+
+.apartment .photo img {
+	width: 10rem;
+}
+
+.apartment .photo .star {
+	font-size: 1.1rem;
+	position: absolute;
+	right: 5px;
+	top: 5px;
+}
+
+.info div {
+	margin: 0.22rem 0;
+}
+
+.info .first {
+	font-size: 0.74rem;
+	color: #bdbdbd;
+}
+
+.info .description {
+	display: flex;
+	font-size: 0.75rem;
+}
+
+.info .description p {
+	font-size: 0.64rem;
+	margin-right: 0.5rem;
+	padding-right: 0.5rem;
+	border-right: 1px solid #000;
+}
+
+.mark {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	background-color: #fff;
+	color: #0048b4;
+}
+
+.btns-center {
+	display: flex;
+	justify-content: center;
+}
+
+.btns-center {
+	background-color: #fff;
+}

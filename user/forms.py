@@ -5,10 +5,9 @@ from django.contrib.auth.models import User
 from phone_field import PhoneField
 
 class UserDocumentsForm(forms.ModelForm):
-    phone_number = PhoneField(help_text='Контактный телефон')
     class Meta:
         #exclude = ('user',)
-        fields = ('firstname','lastname','phone_number','image_one','image_two',)
+        fields = ('firstname','lastname','image_one','image_two',)
         model = UsersDocuments
 
 

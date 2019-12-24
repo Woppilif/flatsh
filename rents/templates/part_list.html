@@ -1,0 +1,33 @@
+{% load static %}
+<div class="apartments">
+    {% for flat in flats %}
+    <div class="apartment">
+        <div class="photo">
+            {%if flat.getPreview is None%}
+            <img src="{% static 'imgs/apartment-sm.png' %}" alt="apartment">
+            {%else%}
+                <img src="/media/{{flat.getPreview.images}}" alt="apartment">
+            {%endif%}
+            <!--<a href="#"><i class="fas fa-star star"></i></a>-->
+        </div>
+        <div class="info">
+            <div class="geo">
+                <a href="{% url 'rents:apartment' flat.pk %}" style="color: black; text-decoration: underline;">{{flat.city}} {{flat.address}}</a>
+            </div>
+            <div class="price">
+                <p class="per_hour">{{flat.price}} руб/сутки</p>
+                <p class="first">-<!--Первые 2 часа 600 руб--></p>
+            </div>
+            <div class="description">
+                {{flat.description| safe |slice:":255"}}...
+            </div>
+        </div>
+        <!--<div class="mark">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>300 м</span>
+        </div>-->
+    </div>
+    {%endfor%}
+
+    
+</div>

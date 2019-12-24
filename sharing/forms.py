@@ -1,6 +1,7 @@
 from django import forms
 from .models import Rents, UsersDocuments, Flats, Images
 from django.contrib.admin import widgets 
+from sharing.widgets import XDSoftDateTimePickerInput
 from django.utils import timezone
 from datetime import timedelta,datetime
 from django.db.models import Q
@@ -36,4 +37,40 @@ class RentForm(forms.ModelForm):
 
     def clean(self):
         cd = self.cleaned_data
+
+class RentFormEx(forms.ModelForm):
+    
+    def __init__(self, *args, **kwargs):
+        super(RentFormEx, self).__init__(*args, **kwargs)
+        time = timezone.now()
+        
+        self.fields['start'] = forms.DateTimeField(
+            input_formats=['%Y-%m-%d %H:%M'],
+            widget=XDSoftDateTimePickerInput(
+                attrs={'minDate':time.date(),'allowTimes':'14:00'}
+                ),label='Начало аренды')
+        
+        #,'minTime':time.time()
+        
+        self.fields['end'] = forms.DateTimeField(
+            input_formats=['%Y-%m-%d %H:%M'],
+            widget=XDSoftDateTimePickerInput(
+                attrs={'minDate':time.date(),'allowTimes':'11:00'})
+                ,label='Окончание аренды')
+        
+  
+    class Meta:
+        fields = ('flat','start','end')
+        model = Rents  
+
+    def clean(self):
+        cd = self.cleaned_data
+        if str(cd.get('start').time()) != "14:00:00":
+            self.add_error('start', "Время не может быть неравно 14:00")
+
+        if str(cd.get('end').time()) != "11:00:00":
+            self.add_error('start', "Время не может быть неравно 11:00")
+
+        if cd.get('end') < cd.get('start'):
+            self.add_error('end', "Дата окончания аренды не может быть меньше даты начала аренды")
     

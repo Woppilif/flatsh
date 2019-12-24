@@ -1,0 +1,41 @@
+{% extends 'body.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+	<div class="flat">
+		<div class="wrap">
+			<div class="txt">
+				<h1>FlatSharing</h1>
+				<div class="descrip">
+					<p>Сервис посуточной аренды недвижимости.</p>
+					<p>Региструйтесь и выбирайте свободную квартиру на необходимый срок </p>
+					<p>по всему городу</p>
+				</div>
+			</div>
+			<div>
+				<a href="{% url 'login' %}" class="btn_bg">Вход и регистрация</a>
+			</div>
+			<div class="condit">
+				<a href="{%url 'rents:user_agreement' %}" class="conditions">
+					Условия использования
+				</a>
+				<a href="#" class="service">
+					Служба поддержки
+				</a>
+				<div></div>
+				<p>
+					&#169; Architecton 2019
+				</p>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+

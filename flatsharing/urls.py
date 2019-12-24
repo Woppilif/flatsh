@@ -20,9 +20,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('sharing/', include('sharing.urls',namespace='sharing')),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('api/', include('api.urls',namespace='api')),
-    path('', include('projects.urls',namespace='projects')),
-    path('users/', include('user.urls',namespace='user')),
-    path('bots/', include('bot_api.urls',namespace='bot_api')),
+    path('', include('rents.urls',namespace='rents')),
 ]
 

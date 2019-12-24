@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Главная</title>
+	<link rel='shortcut icon' type='image/x-icon' href="{% static 'favicon.ico' %}" />
+	<!-- Normalize -->
+	<link rel="stylesheet" href="{% static 'css/normalize.css' %}">
+	<!-- Bootstrap 4 -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<!-- Common Styles -->
+	<link rel="stylesheet" href="{% static 'css/common.css' %}">
+	<!-- Main Index -->
+	
+	<!-- Шрифт Roboto -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,500,700&display=swap&subset=cyrillic" rel="stylesheet">
+</head>
+<body>
+	
+<div class="bg-cont">
+
+	<nav class="navigation fixed-top">
+		<div class="wrap">
+			<div class="nav-flex">
+				<div class="logo-search">
+					<div class="logo">
+						<img src="{% static 'imgs/logo.png' %}" alt="l">
+						<p>FlatSharing</p>
+					</div>
+					<div class="search">
+						<form>
+						  <input type="text" placeholder="Казань">
+						  <button type="submit"></button>
+						</form>
+					</div>
+				</div>
+				<div class="menu">
+					<div class="menu-list">
+					{% if user.is_authenticated %}
+						<a href="{%url 'rents:map'%}">Главная</a>
+						<a href="{%url 'rents:favorites'%}">Избранное</a>
+						<a href="{%url 'rents:options'%}">Настройки</a>
+						<a href="{%url 'logout'%}">Выход</a>
+					{%else%}
+						<a href="{%url 'rents:index'%}">Главная</a>
+						<a href="{%url 'rents:registration'%}">Регистрация</a>
+						<a href="{%url 'login'%}">Вход</a>
+					{%endif%}
+					</div>
+				</div>
+			</div>
+		</div>
+    </nav>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-dismissible {% if message.tags %}{% if message.tags == 'error' %}alert-danger{% elif message.tags == 'debug' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %}{% else %}alert-info{% endif %}" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {{ message|safe }}
+        </div>
+      {% endfor %}
+	{% endif %}
+	{% for field in form %}
+		{% if field.errors %}
+			<div style="padding-top: 6%;" class="alert alert-dismissible alert-info" role="alert">
+				{{field.errors}}
+			</div>
+		{% endif %}
+	{% endfor %}
+
+    {% block content %}
+    {% endblock %}
+</div>
+	<!-- FontAwesome -->
+
+<script src="https://kit.fontawesome.com/230cba36d5.js" crossorigin="anonymous"></script>
+<!-- Jquery -->
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>	
+{% block javascript %}
+{% endblock %}
+</body>
+</html>

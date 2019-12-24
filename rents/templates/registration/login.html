@@ -1,0 +1,33 @@
+{% extends 'body.html' %}
+{% load static %}
+{% block content %}
+{% load widget_tweaks %}
+<link rel="stylesheet" href="{% static 'css/registration.css' %}">
+<form class="reg" method='POST' action="#">
+    {% csrf_token %}
+	<h1>Вход для пользователей</h1>
+	{% for field in form %}
+    <div class="form-group{% if field.errors %} has-error{% endif %}">
+		<div class="num">
+		<p>{{ field.label }}</p>
+		{% render_field field %}
+		</div>
+		{% for error in field.errors %}
+			<p class="help-block" style="color: red;">{{ error }}</p>
+		{% endfor %}
+    </div>
+    {% endfor %}
+	<!--<div class="num" >
+		<p>Почта</p>
+		<input type="email" name='username' id="username">
+	</div>
+	<div class="mail">
+		<p>Пароль</p>
+		<input type="password" name='password' id="password">
+	</div>-->
+	
+	<button type="submit">Вход</button>
+	<a href="{% url 'rents:registration' %}" class="gr">Создать аккаунт</a>
+	<a href="{% url 'password_reset' %}" class="gr">Забыли пароль?</a>
+</form>
+{% endblock %}

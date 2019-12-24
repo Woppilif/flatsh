@@ -1,0 +1,52 @@
+{% extends 'body.html' %}
+{% load static %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/registration_robot.css' %}">
+<section>
+	<div class="wrap">
+		<div class="dialogue">
+		<div class="message right">
+			<div class="mess shadow">
+				<img src="imgs/photo.png" alt="">
+			</div>
+		</div>
+		<div class="message left">
+			<div class="mess">
+				<p>Теперь привяжем банковскую карту</p>
+			</div>
+		</div>
+		<div class="message right">
+			<div class="mess">
+				<p>4837 2378 3471 2736</p>
+			</div>
+		</div>
+		<div class="message left">
+			<div class="mess">
+				<p>Хорошо, спасибо. И последнее...
+Нам нужно позвонить Вам и кое-что сказать. Это займет несколько секунд.
+Нажмите кнопку «Можно звонить», когда будете готовы.</p>
+			</div>
+		</div>
+		<div class="message right">
+			<div class="mess">
+				<p>Можно звонить</p>
+			</div>
+		</div>
+		<div class="message left">
+			<div class="mess">
+				<p>Вот теперь точно всё!
+Мы отправили документы своим коллегам на проверку. Скоро расскажем о результатах.</p>
+			</div>
+		</div>
+	</div>
+	</div>
+</section>
+
+<div class="btn-ok">
+<a href="#" class="btn_bg">Хорошо</a>
+</div>
+{% endblock %}

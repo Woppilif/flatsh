@@ -28,18 +28,17 @@ SECRET_KEY = '&%gb#g5=4&vj^z4dzbw3-znxr2hil!@fqju)gfaxks)jgba73m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1']
 
-LOGIN_REDIRECT_URL = '/projects/list'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login'
 
 # Application definition
 
 INSTALLED_APPS = [
-    'bot_api.apps.BotApiConfig',
-    'user.apps.UserConfig',
-    'projects.apps.ProjectsConfig',
-    'api.apps.ApiConfig',
+    'rents.apps.RentsConfig',
+    #'user.apps.UserConfig',
+    #'projects.apps.ProjectsConfig',
     'sharing.apps.SharingConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,7 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks', 
     'phone_field',
-    'channels'
+    #'channels'
 ]
 
 MIDDLEWARE = [
@@ -69,8 +68,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'sharing/templates'),
-            os.path.join(BASE_DIR, 'projects/templates'),
-            os.path.join(BASE_DIR, 'user/templates')
+            os.path.join(BASE_DIR, 'rents/templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -92,14 +90,11 @@ WSGI_APPLICATION = 'flatsharing.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'fs',
-        'USER': 'sharing',
-        'PASSWORD': 'hello182',
-        'HOST': '127.0.0.1', 
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
 
 
 ASGI_APPLICATION = 'routing.application'
@@ -142,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'RU-ru'
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Europe/Moscow'
 
@@ -157,7 +152,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
-MEDIA_ROOT = os.path.join(BASE_DIR,'static')
+STATIC_ROOT = os.path.join(BASE_DIR,'static')
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
@@ -166,6 +161,9 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'ewtm.info@gmail.com'
 EMAIL_HOST_PASSWORD = 'Arch2008'
 EMAIL_PORT = 587
+
+YA_ACCOUNT_ID = 591310
+YA_SECRET_KEY = "test_1J9BQa-AGyxrN3U9x7CrJ6l4bM0ri8L5a5aGcBj7T_w"
 
 '''
 LOGGING_CONFIG = None

@@ -1,0 +1,31 @@
+{% extends 'body.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/registration.css' %}">
+
+<form method="post" action="{% url 'rents:bot' %}" enctype='multipart/form-data' class="reg">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group{% if field.errors %} has-error{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% render_field field %}
+      {% for error in field.errors %}
+        <p class="help-block">{{ error }}</p>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  <div class="form-group" style="font-size: small;">
+    Нажимая на кнопку продолжить Вы соглашаетесь с <a href="{%url 'rents:user_agreement' %}" style="color: blue;">условиями пользования</a> и даёте согласие на 
+    обработку персональных данных согласно <a href="{%url 'rents:user_agreement' %}" style="color: blue;">п.12 пользовательского соглашения</a>, а так же договору
+    <a href="{%url 'rents:agreement' %}" style="color: blue;">аренды/найма/субаренды</a>
+  </div>
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Продолжить</button>
+</form>
+          
+
+
+
+{% endblock %}

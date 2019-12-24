@@ -1,0 +1,42 @@
+{% extends 'body.html' %}
+{% load static %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/registration_cart.css' %}">
+<section>
+	<form class="reg">
+		<div class="cart">
+			<div class="first">
+				<input placeholder="Номер карты" type="text">
+			</div>
+			<div class="flex">
+				<div class="date">
+					<input placeholder="ММ" type="text">
+					<p>/</p>
+					<input type="text" placeholder="ГГ">
+				</div>
+				<div class="cvc">
+					<div class="thr">
+						<p>Три цифры</p>
+						<p>на обрате</p>
+						<p>карты</p>
+					</div>
+					<input type="text" placeholder="CVC">
+				</div>
+			</div>
+		</div>
+
+		<div class="out">
+			<p>С карты снимется 1 руб и вернется сразу же,</p>
+			<p>как только подтвердится Ваша карта.</p>
+		</div>
+
+		<div class="btn-add">
+			<a href="#" class="btn_bg">Добавить карту</a>
+		</div>
+	</form>
+</section>
+{% endblock %}
