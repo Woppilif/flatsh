@@ -39,6 +39,11 @@ class RentForm(forms.ModelForm):
         cd = self.cleaned_data
 
 class RentFormEx(forms.ModelForm):
+
+    paid = forms.ChoiceField(choices=(
+        (True,'Оплачена наличными'),
+        (False, 'Оплата картой клиента')
+    ))
     
     def __init__(self, *args, **kwargs):
         super(RentFormEx, self).__init__(*args, **kwargs)
@@ -47,7 +52,7 @@ class RentFormEx(forms.ModelForm):
         self.fields['start'] = forms.DateTimeField(
             input_formats=['%Y-%m-%d %H:%M'],
             widget=XDSoftDateTimePickerInput(
-                attrs={'minDate':time.date(),'allowTimes':'14:00'}
+                attrs={'minDate':time.date(),'allowTimes':'14:00','class':'cal'}
                 ),label='Начало аренды')
         
         #,'minTime':time.time()
@@ -55,12 +60,12 @@ class RentFormEx(forms.ModelForm):
         self.fields['end'] = forms.DateTimeField(
             input_formats=['%Y-%m-%d %H:%M'],
             widget=XDSoftDateTimePickerInput(
-                attrs={'minDate':time.date(),'allowTimes':'11:00'})
+                attrs={'minDate':time.date(),'allowTimes':'12:00','class':'cal'})
                 ,label='Окончание аренды')
         
   
     class Meta:
-        fields = ('flat','start','end')
+        fields = ('flat','start','end','paid')
         model = Rents  
 
     def clean(self):
@@ -68,8 +73,8 @@ class RentFormEx(forms.ModelForm):
         if str(cd.get('start').time()) != "14:00:00":
             self.add_error('start', "Время не может быть неравно 14:00")
 
-        if str(cd.get('end').time()) != "11:00:00":
-            self.add_error('start', "Время не может быть неравно 11:00")
+        if str(cd.get('end').time()) != "12:00:00":
+            self.add_error('start', "Время не может быть неравно 12:00")
 
         if cd.get('end') < cd.get('start'):
             self.add_error('end', "Дата окончания аренды не может быть меньше даты начала аренды")

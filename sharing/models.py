@@ -38,6 +38,10 @@ class Cities(models.Model):
 class Partners(models.Model):
     city = models.ForeignKey(Cities, on_delete=models.CASCADE)
     account = models.OneToOneField(User, on_delete=models.CASCADE)
+    headmaster = models.CharField(default=None,blank=True,null=True,max_length=60)
+    hmrank = models.CharField(default=None,blank=True,null=True,max_length=60)
+    org_name = models.CharField(default=None,blank=True,null=True,max_length=60)
+    document = models.CharField(default=None,blank=True,null=True,max_length=60)
 
     def __str__(self):
         return str(self.account)
@@ -106,7 +110,6 @@ class FlatManager(models.Manager):
             return True
         return False
 
-
 class Flats(models.Model):
     DOOR_STATS = (
         (False, 'Заблокирована'),
@@ -124,6 +127,7 @@ class Flats(models.Model):
     building = models.CharField(max_length=10, blank=True, null=True)
     flat_number = models.CharField(max_length=10, blank=True, null=True)
     floor = models.IntegerField(blank=True, null=True)
+    rooms = models.IntegerField(blank=True, null=True,default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     deposit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     per_hour = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
@@ -146,6 +150,12 @@ class Flats(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('rents:apartment', args=[int(self.pk)])
+
+    def flatsItems(self):
+        return FlatsItems.objects.filter(flat_id=self.pk)
+
+    def partnerInfo(self):
+        return self.district.partner
 
     def addressPartOne(self):
         return "{0}, {1}, {2} {3}".format(self.city(),self.district,self.street,self.HouseNumber())
@@ -191,6 +201,17 @@ class Flats(models.Model):
     
     def getPreview(self):
         return Images.objects.filter(flat_id=self.pk).first()
+
+class FlatsItems(models.Model):
+    flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
+    item_name = models.CharField(max_length=50, blank=True, null=True,verbose_name="Предмет (Стол, стул)")
+    item_count = models.IntegerField(blank=True,null=True,default=0,verbose_name="Количество предметов (целое число)")
+    class Meta:
+        verbose_name = 'Предмет'
+        verbose_name_plural = 'Предметы'
+
+    def __str__(self):
+        return "{0} {1} шт.".format(self.item_name,self.item_count)
 
 def get_file_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -394,6 +415,11 @@ class PaymentsManager(models.Manager):
             addCard = False
             payment_method = renta.rentor.usersdocuments.yakey
             rentor = renta.rentor
+        elif p_type == 3:
+            price = renta.getPrice()
+            payment_method = None
+            addCard = True
+            rentor = user
         else:
             price = 1
             payment_method = None
@@ -404,7 +430,7 @@ class PaymentsManager(models.Manager):
         if created is True:
             deposit.date = timezone.now()
             deposit.save()
-        paymentObjectId = self.paymentObject(price,payment_method,deposit.pk,addCard)
+        paymentObjectId = self.paymentObject(price,payment_method,deposit.pk,addCard,renta)
         self.setData(paymentObjectId,deposit)
         if p_type == 0:
             return paymentObjectId
@@ -416,6 +442,18 @@ class PaymentsManager(models.Manager):
                 dbObject.save()
                 dbObject.renta.paid =  True
                 dbObject.renta.save()
+        return deposit
+    
+    def create_trial(self,renta):
+        deposit, created = self.get_or_create(rentor = renta.rentor,
+                                                renta = renta,
+                                                price = renta.getPrice(),
+                                                payment_type = 3
+                                            )
+        if created is True:
+            paymentObjectId = self.paymentObject(renta.getPrice(),None,deposit.pk,True,renta)
+            print(paymentObjectId)
+            self.setData(paymentObjectId,deposit)
         return deposit
 
     def capture(self,paymentObject,value):
@@ -436,8 +474,12 @@ class PaymentsManager(models.Manager):
     def cancel(self):
         pass
 
-    def paymentObject(self, value = 1, method_id = '', payment_id = None, addCard = False):
+    def paymentObject(self, value = 1, method_id = '', payment_id = None, addCard = False,renta = None):
         if addCard:
+            if value == 1:
+                url = "http://{0}/card/{1}".format(settings.ALLOWED_HOSTS[0],payment_id)
+            else:
+                url = "http://{0}/trial/{1}/pay".format(settings.ALLOWED_HOSTS[0],renta.trial_key)
             return Payment.create({
                 "amount": {
                     "value": value,
@@ -448,7 +490,7 @@ class PaymentsManager(models.Manager):
                 },
                 "confirmation": {
                     "type": "redirect",
-                    "return_url": "http://{0}/card/{1}".format(settings.ALLOWED_HOSTS[0],payment_id)
+                    "return_url": url
                 },
                 "description": "Заказ ID:{0}".format(payment_id),
                 "save_payment_method": "true"
@@ -462,8 +504,13 @@ class PaymentsManager(models.Manager):
             "description": "Заказ ID:{0}".format(payment_id)
         })
 
+    def find_one(self,paymentObjectId):
+        print(paymentObjectId)
+        return Payment.find_one(paymentObjectId)
+
     def setData(self,paymentObject,dbObject):
-        paymentObject = Payment.find_one(paymentObject.id)
+        print(paymentObject)
+        paymentObject = self.find_one(paymentObject.id)
         dbObject.payment_id = paymentObject.id
         dbObject.payment_status = paymentObject.status
         dbObject.created_at = paymentObject.created_at
@@ -504,6 +551,18 @@ class Payments(models.Model):
         self.status = None
         self.save()
         return Payment.cancel(self.payment_id,str(uuid.uuid4()))
+
+    def capture(self):
+        return Payment.capture(
+            self.payment_id,
+            {
+                "amount": {
+                    "value": self.price,
+                    "currency": "RUB"
+                }
+            },
+            str(uuid.uuid4()) #idempotence key
+        )
     
     def status_info(self):
         return [i[1] for i in self.P_TYPES if i[0] == self.payment_type][0]
@@ -628,7 +687,7 @@ class Access(models.Model):
                     return "Доступна с {0}".format(self.start.strftime("%b %d %Y %H:%M:%S"))
                 return "Время осмотра закончилось"
         else:
-            return "10 минут осталось"
+            return "осталось 10 минут"
 
     def usedAdd(self):
         self.used+=1

@@ -26,7 +26,7 @@ def checkRoleManager(function):
 @login_required(login_url='/accounts/login/')
 @checkRoleManager
 def index(request):
-    rents = Rents.objects.all().order_by('-start')
+    rents = Rents.objects.filter(trial_key__isnull=False,status=True).order_by('-start')
     return render(request,"trial/index.html",{"rents":rents})
     
 @login_required(login_url='/accounts/login/')
@@ -39,7 +39,7 @@ def save_trial_form(request, form, template_name):
             flat =  Flats.objects.get(pk=int(request.POST.get("flat")))
             obj = Rents.renta.createRent(flat=flat,user=request.user,start=ff.start,end=ff.end)
             obj.status = True
-            obj.paid =  True
+            obj.paid = ff.paid
             obj.trial_key = str(uuid.uuid4())
             obj.save()
             access = Access.access.createPaidAccess(obj)
@@ -47,9 +47,9 @@ def save_trial_form(request, form, template_name):
             print("And access {0}".format(access))
             
             data['form_is_valid'] = True
-            rents = Rents.objects.all().order_by('-start')
+            rents = Rents.objects.filter(trial_key__isnull=False,status=True).order_by('-start')
             data['html_book_list'] = render_to_string('trial/includes/partial_book_list.html', {
-                'rents':rents
+                'rents':rents, 'new':obj.pk
             })
         else:
             data['form_is_valid'] = False

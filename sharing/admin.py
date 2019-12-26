@@ -41,6 +41,10 @@ class ChoiceInline(admin.StackedInline):
     model = Images
     extra = 2
 
+class ChoiceInlineItems(admin.StackedInline):
+    model = FlatsItems
+    extra = 2
+
 class PaymentsInline(admin.StackedInline):
     model = Payments
     extra = 0
@@ -50,7 +54,7 @@ class AccessInline(admin.StackedInline):
     extra = 0
 
 class QuestionAdmin(admin.ModelAdmin):
-    inlines = [ChoiceInline]
+    inlines = [ChoiceInline,ChoiceInlineItems]
     list_display = ('street','district','city','status','app_status')
     list_filter = ['district']
     search_fields = ['street']

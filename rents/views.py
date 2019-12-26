@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import PasswordChangeForm
 from django.utils import timezone
 from datetime import timedelta
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import time
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
@@ -16,6 +16,9 @@ import json
 from sharing.views.opener import openDoorAPI
 from django.views.decorators.csrf import csrf_exempt
 import os
+from django.db.models import Max, Min
+from django.template.loader import render_to_string
+
 def checkdocs(function):
     '''
         Redirect user to booked object if he has one
@@ -85,12 +88,30 @@ def registration(request):
 @sendToRenta
 @sendToBuchen
 def map(request):
+    data = dict()
     flats = Flats.objects.filter(door_status=True,status='U')
-    if request.GET.get('q') is not None:
-        flats = flats.filter(price__gte=request.GET.get('q'))
     today = timezone.now()
     tomorrow = today + timedelta(days=1)
-    return render(request, 'map.html',{"flats":flats,"today":str(today.strftime("%Y-%m-%dT%H:%M")),"tomorrow":str(tomorrow.strftime("%Y-%m-%dT%H:%M"))})
+    max_val = flats.aggregate(Max('price')) 
+    min_val = flats.aggregate(Min('price')) 
+    
+    data['today'] = str(today.strftime("%Y-%m-%dT%H:%M"))
+    data['tomorrow'] = str(tomorrow.strftime("%Y-%m-%dT%H:%M"))
+    data['max'] = int(max_val['price__max'])
+    data['min'] = int(min_val['price__min'])
+    if len(request.GET.keys()) > 0:
+        if request.GET.get('max') is not None and request.GET.get('min') is not None:
+            flats = flats.filter(price__gte=request.GET.get('min'),price__lte=request.GET.get('max'))
+        data['form_is_valid'] = True
+        #data['flats'] = flats
+        data['max'] = request.GET.get('max')
+        data['min'] = request.GET.get('min')
+        data['data'] = render_to_string('map_part.html', {
+            "flats":flats
+        })
+        return JsonResponse(data)
+    data['flats'] = flats
+    return render(request, 'map.html',data)
 
 @login_required(login_url='/accounts/login/')
 @checkcard
@@ -99,8 +120,8 @@ def act(request,pk):
     renta = get_object_or_404(Rents, pk=pk,rentor=request.user,paid=False)
     if request.method == 'POST':
         if "pay" in request.POST:
-            deposit = Payments.paym.createPayment(renta=renta,p_type=1)
-            print("Renta deposit obj created {0}".format(deposit))
+            #deposit = Payments.paym.createPayment(renta=renta,p_type=1)
+            #print("Renta deposit obj created {0}".format(deposit))
             full = Payments.paym.createPayment(renta=renta,p_type=2)
             print("Renta payment obj created {0}".format(full))
             access, created = Access.access.createPaidAccess(full.renta)
@@ -112,7 +133,7 @@ def act(request,pk):
             return redirect('rents:map')
         if "open" in request.POST:
             return redirect('rents:access')
-    return render(request, 'act.html',{"renta":renta})
+    return render(request, 'act.html',{"renta":renta,"date":timezone.now()})
 
 @login_required(login_url='/accounts/login/')
 @checkcard
@@ -121,8 +142,8 @@ def actpay(request,pk):
     renta = get_object_or_404(Rents, pk=pk,rentor=request.user,paid=False)
     if request.method == 'POST':
         if "pay" in request.POST:
-            deposit = Payments.paym.createPayment(renta=renta,p_type=1)
-            print("Renta deposit obj created {0}".format(deposit))
+            #deposit = Payments.paym.createPayment(renta=renta,p_type=1)
+            #print("Renta deposit obj created {0}".format(deposit))
             full = Payments.paym.createPayment(renta=renta,p_type=2)
             print("Renta payment obj created {0}".format(full))
             access, created = Access.access.createPaidAccess(full.renta)
@@ -132,7 +153,7 @@ def actpay(request,pk):
             renta.status = None
             renta.save()
             return redirect('rents:map')
-    return render(request, 'actpay.html',{"renta":renta})
+    return render(request, 'actpay.html',{"renta":renta,"date":timezone.now()})
 
 @login_required(login_url='/accounts/login/')
 @checkcard
@@ -195,7 +216,7 @@ def opendoor(request,pk):
         if "open" in request.POST:
             return redirect('rents:access')
         if "end" in request.POST:
-            Payments.objects.get(renta=renta,rentor=request.user,payment_type=1).cancel()
+            #Payments.objects.get(renta=renta,rentor=request.user,payment_type=1).cancel()
             renta.status = None
             renta.save()
             return redirect('rents:map')
@@ -295,15 +316,42 @@ def access(request):
         print("Rights expired!")
     return redirect('rents:act',pk=renta.pk)
 
+def trial_pay(request, trial_key):
+    renta = get_object_or_404(Rents, trial_key=trial_key,status=True)
+    if renta.paid is False:
+        payment_object = Payments.paym.create_trial(renta=renta)
+        payment = Payments.paym.find_one(payment_object.payment_id)
+        print(payment.status)
+        if payment.status == 'waiting_for_capture':
+            response = Payments.paym.capture(payment,payment.amount.value)
+            if response.status == 'succeeded':
+                payment_object.status = True
+                payment_object.save()
+                renta.paid = True
+                renta.save()
+                Payments.paym.setData(payment,payment_object)
+                access = Access.access.createPaidAccess(renta)
+                print("Renta {0}".format(renta))
+                print("And access {0}".format(access))
+                return redirect('rents:trial_renta',trial_key=trial_key)
+            else:
+                return redirect(payment.confirmation.confirmation_url)
+        else:
+            return redirect(payment.confirmation.confirmation_url)
+    else:
+        return redirect('rents:trial_renta',trial_key=trial_key)
+
 def trial_renta(request, trial_key):
-    renta = get_object_or_404(Rents, trial_key=trial_key,status=True,paid=True)
+    renta = get_object_or_404(Rents, trial_key=trial_key,status=True)
+    if renta.paid is False:
+        return redirect('rents:trial_pay',trial_key=trial_key)
     if request.method == 'POST':
         if "open" in request.POST:
             return redirect('rents:trial_access',trial_key=trial_key)
     return render(request, 'opendoor_trial.html',{"renta":renta})
 
 def trial_access(request,trial_key):
-    renta = Rents.objects.filter(trial_key=trial_key,status=True).first()
+    renta = Rents.objects.filter(trial_key=trial_key,status=True,paid=True).first()
     acc = renta.AccessObj() #get_object_or_404(Access, pk=pk,user=request.user)
     print(acc)
     acc.setStartTime()

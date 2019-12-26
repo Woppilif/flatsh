@@ -1,11 +1,24 @@
 {% for item in rents %}
-<tr>
+<tr {% if new == item.pk %} style="background-color: red;" {%endif%}>
 
   <td>{{ item.flat.addressPartOne }} {{ item.flat.addressPartTwo }}</br><strong>{{ item.start }} - {{ item.end }}</strong></td>
-  <td>ewtm.ru{{ item.get_absolute_url }}</td>  
+  <td>
+    <input type="text" value="http://ewtm.ru{{ item.get_absolute_url }}" id="renta_{{item.pk}}">
+<button onclick="myFunction('{{item.pk}}')">Копировать</button>
+    </td>  
 </tr>
 {% empty %}
 <tr>
   <td colspan="8" class="text-center bg-warning">У вас еще нет квартир</td>
 </tr>
 {% endfor %}
+
+<script>
+  function myFunction(id) {
+    var copyText = document.getElementById("renta_"+id);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999)
+    document.execCommand("copy");
+    alert("Скопировано!");
+  }
+  </script>
