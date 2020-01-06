@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Scrolling Nav - Start Bootstrap Template</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="css/scrolling-nav.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+
+<body id="page-top">
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand js-scroll-trigger" href="#page-top">FlatSharing</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#about">Главная</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#services">Настройки</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#contact">Выход</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <header class="bg-while text-white"  id="map">
+  
+  </header>
+
+  <section id="filler" style="position:relative; padding-top:20px;">
+    <div class="container" style="padding-top:25px;">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2>Москва
+
+                Большая Черёмушкинская 20 к.3</h2>
+            <p class="lead">Осталось 5 дней</p>
+          </div>
+        </div>
+      </div> 
+    <form>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mx-auto">
+                    <div class="form-group">
+                        <label for="slider">Продлить на</label>
+                        <div id="slider">
+                            <div id="custom-handle" class="ui-slider-handle"></div>
+                        </div>
+                    </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-lg btn-block btn-outline-secondary">Продлить</button>
+                </div>
+                
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mx-auto">
+                <div class="form-group">
+                    <button type="button" class="btn btn-lg btn-block btn-outline-danger">Завершить аренду</button>
+                </div>
+                
+                </div>
+            </div>
+        </div>
+    </form>
+    
+  </section> 
+
+  <footer class="py-1 bg-dark fixed-bottom">
+    <form>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-lg btn-block btn-primary">Открыть дверь</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <!-- /.container -->
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Plugin JavaScript -->
+  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- Custom JavaScript for this theme -->
+  <script src="js/scrolling-nav.js"></script>
+ <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</body>
+
+<script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
+<script>
+  var map;
+  DG.then(function () {
+    map = DG.map('map', {
+        center: [55.84183, 49.121128],
+        zoom: 13
+    });
+  });
+  $( function() {
+    var handle = $( "#custom-handle" );
+    $( "#slider" ).slider({
+        min: 1,
+      max: 10,
+      create: function() {
+        handle.text( $( this ).slider( "value" ) );
+      },
+      slide: function( event, ui ) {
+        handle.text( ui.value );
+      }
+    });
+  } );
+</script>
+
+</html>
