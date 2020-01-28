@@ -8,4 +8,7 @@ Pillow
 redis
 websockets
 yandex-checkout
-psycopg2
+mysqlclient
+ics
+lxml
+beautifulsoup4

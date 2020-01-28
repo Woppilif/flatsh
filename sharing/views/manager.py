@@ -26,7 +26,7 @@ def checkRoleManager(function):
 @login_required(login_url='/accounts/login/')
 @checkRoleManager
 def index(request):
-    rents = Rents.objects.filter(trial_key__isnull=False,status=True).order_by('-start')
+    rents = Rents.objects.filter(trial_key__isnull=False,status=True).order_by('-created_at')
     return render(request,"trial/index.html",{"rents":rents})
     
 @login_required(login_url='/accounts/login/')

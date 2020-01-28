@@ -1,11 +1,17 @@
 from django.test import TestCase
-from sharing.models import UsersDocuments, Rents, Access
-from django.db.models import Q
-# Create your tests here.
-from datetime import datetime
+from sharing.models import Payments, Access, Rents
 from django.utils import timezone
-start =  datetime(2019,12,11,21,59)
-end =  datetime(2019,12,12,21,59)
+from datetime import datetime, timedelta
+import json
+import requests
 
-renta = Rents.objects.filter(rentor_id=1,end__lt=timezone.now())
-print(renta)
+data = {
+    "id": 10
+}
+
+data = json.dumps(data)
+
+response = requests.post("http://127.0.0.1:8000/bitx/",data=data)
+print(response.text)
+
+

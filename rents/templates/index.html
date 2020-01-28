@@ -1,41 +1,22 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
+{% block title %}Главная{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}">
-	<div class="flat">
-		<div class="wrap">
-			<div class="txt">
-				<h1>FlatSharing</h1>
-				<div class="descrip">
-					<p>Сервис посуточной аренды недвижимости.</p>
-					<p>Региструйтесь и выбирайте свободную квартиру на необходимый срок </p>
-					<p>по всему городу</p>
-				</div>
-			</div>
-			<div>
-				<a href="{% url 'login' %}" class="btn_bg">Вход и регистрация</a>
-			</div>
-			<div class="condit">
-				<a href="{%url 'rents:user_agreement' %}" class="conditions">
-					Условия использования
-				</a>
-				<a href="#" class="service">
-					Служба поддержки
-				</a>
-				<div></div>
-				<p>
-					&#169; Architecton 2019
-				</p>
-			</div>
-		</div>
-	</div>
+<header class="bg-primary text-white" id="hhddrr">
+    <div class="container text-center">
+      <h1>FlatSharing</h1>
+      <p class="lead">Сервис посуточной аренды квартир</p>
+      <a href="{% url 'login' %}" class="btn btn-success btn-lg btn-block">Вход и регистрация</a>
+    </div>
+  </header>
+  <footer class="py-1 bg-dark fixed-bottom">
+    <div class="container">
+      <p class="m-0 text-center text-white">Architecton &copy; 2020</p>
+    </div>
+    <!-- /.container -->
+  </footer>
 {% endblock %}
 
-
-
-
-
-
-
-
-
+{% block javascript %}
+{% endblock %}

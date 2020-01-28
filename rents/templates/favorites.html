@@ -1,52 +1,56 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
-
-{% block javascript %}
-{% endblock %}
+{% block title %}Избранное{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}">
-<section>
-	<div class="wrap">
-		<div class="list">
-			<!--<div class="spis">
-				<p>Избранное <span>11</span></p>
-			</div>-->
-			<div class="sort">
-				<div class="sorting">
-					<span>Сортировка</span>
-					<i class="fas fa-angle-right"></i>
-				</div>
-				<!--<div>
-					<a href="#" class="bl">Расстояние ближе</a>
-				</div>-->
-				<div>
-					<a href="{% url 'rents:favorites' %}?price=up">Цена по возрастанию</a>
-				</div>
-				<div>
-					<a href="{% url 'rents:favorites' %}?price=down">Цена по убыванию</a>
-				</div>
-			</div>
+<section class="contr" id="contr">
+      
+    <div class="container">
+        <section class="filters">
+            <div class="row no-gutters rounded overflow-hidden flex-md-row shadow-sm h-md-50 position-relative">
+           <div class="col"><a href="{% url 'rents:favorites' %}?price=up" class="btn btn-sm btn-block btn-outline-secondary">Цена по возрастанию</a></div>
+           <div class="col"><a href="{% url 'rents:favorites' %}?price=down" class="btn btn-sm btn-block btn-outline-primary">Цена по убыванию</a></div>
+            </div>
+        </section>
+        {% for flat in flats %}
+        <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+            <div class="col-md-5 d-4 d-lg-block">
+                {%if flat.getPreview is None%}
+                    <img class="bd-placeholder-img"  src="https://image.shutterstock.com/image-photo/mountains-during-sunset-beautiful-natural-260nw-407021107.jpg" alt="apartment">
+                {%else%}
+                    <img class="bd-placeholder-img"  src="/media/{{flat.getPreview.images}}" alt="apartment">
+                {%endif%}
+            </div>
+            <div class="col-md-7 p-4 d-flex flex-column position-static">
+                <!--<strong class="d-inline-block mb-2 text-primary">World</strong>-->
+                <h3 class="mb-0">{{flat.city}} {{flat.address}}</h3>
+                <div class="mb-1 text-muted">{{flat.price}} руб/сутки</div>
+                <p class="card-text mb-auto">{{flat.description| safe |slice:":255"}}...</p>
+                <a href="{% url 'rents:apartment' flat.pk %}" class="stretched-link">Подробнее</a>
+            </div>
+        </div>
+        {%endfor%}
+        
+        
+         
+      </div>
+  </section>
 
-			{% include 'part_list.html' %}
-		</div>
-	</div>
-</section>
 
-		
-		<section class="fixed-bottom">
-			<div class="wrap">
-				<div class="btns">
-						<div class="clean_filt">
-							
-						</div>
-						<div class="back_map">
-							<a href="{% url 'rents:map' %}" class="btn_bg">Назад к карте</a>
-						</div>
-						<div class="extra_filt">
-							
-						</div>
-				</div>
-			</div>
-		</section>
+  <footer class="py-1 bg-dark fixed-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <a href="{% url 'rents:map' %}" class="btn btn-lg btn-block btn-primary">Назад к карте</a>
+            </div>
+            <!--<div class="col-md-4 padd">
+                <button type="button" class="btn btn-lg btn-block btn-secondary">Фильтры</button>
+            </div>-->
+        </div>
+    </div>
+    <!-- /.container -->
+  </footer>
+{% endblock %}
+
+{% block javascript %}
 {% endblock %}

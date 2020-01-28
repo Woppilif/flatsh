@@ -1,0 +1,52 @@
+{% extends 'body.html' %}
+{% load static %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/list.css' %}">
+<section>
+	<div class="wrap">
+		<div class="list">
+			<!--<div class="spis">
+				<p>Избранное <span>11</span></p>
+			</div>-->
+			<div class="sort">
+				<div class="sorting">
+					<span>Сортировка</span>
+					<i class="fas fa-angle-right"></i>
+				</div>
+				<!--<div>
+					<a href="#" class="bl">Расстояние ближе</a>
+				</div>-->
+				<div>
+					<a href="{% url 'rents:favorites' %}?price=up">Цена по возрастанию</a>
+				</div>
+				<div>
+					<a href="{% url 'rents:favorites' %}?price=down">Цена по убыванию</a>
+				</div>
+			</div>
+
+			{% include 'part_list.html' %}
+		</div>
+	</div>
+</section>
+
+		
+		<section class="fixed-bottom">
+			<div class="wrap">
+				<div class="btns">
+						<div class="clean_filt">
+							
+						</div>
+						<div class="back_map">
+							<a href="{% url 'rents:map' %}" class="btn_bg">Назад к карте</a>
+						</div>
+						<div class="extra_filt">
+							
+						</div>
+				</div>
+			</div>
+		</section>
+{% endblock %}

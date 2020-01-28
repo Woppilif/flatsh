@@ -1,153 +1,182 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
-
-{% block javascript %}
-<!-- Map 2GIS -->
-
-<!-- Script of Map 2GIS -->
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script src="{% static 'js/map.js' %}"></script>
-<!-- Bootstrap JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-<!-- FontAwesome -->
-<script src="https://kit.fontawesome.com/230cba36d5.js" crossorigin="anonymous"></script>
-<script src="{% static 'js/datetime.js' %}"></script>
-{% endblock %}
+{% load l10n %}
+{% block title %}Карта{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="{% static 'css/map.css' %}">
-<!--<div class="map">
-    <div id="map" style="width:100%; height:490px"></div>
-</div>-->
-<div id="map-block">{% include 'map_part.html' %}</div>
+<header class="bg-while text-white"  id="map">
+  
+</header>
 
+<section id="filler" style="position:relative; padding-top:20px;">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 mx-auto">
+       <label for="start_date">Дата заезда</label>
+       <input type="datetime-local" class="form-control" id="start_date" value="{{today}}" min="{{today}}">
+      </div>
+      <div class="col-lg-6 mx-auto">
+        <label for="end_date">Дата выезда</label>
+        <input type="datetime-local" class="form-control" id="end_date" value="{{tomorrow}}" min="{{today}}">
+      </div>
+      <!--<div class="col-lg-4  pt-4 pl-4 pr-4">
+        <div class="form-group">
+          <label for="amount">Цена <span id="ex6SliderVal">от {{min}} до {{max}}</span></label>
+          <input id="ex2" type="text" class="span2" value="" data-slider-min="{{min}}" data-slider-max="{{max}}" data-slider-step="1000" data-slider-value="[{{min}},{{max}}]"/>
+        </div>
+      </div> -->
+    </div>
+    <div class="row pt-2">
+      
+      <div class="col-lg-6 pt-4 pl-4 pr-4">
+        <!--<label for="radius">Радиус</label>
+        <select id="radius" class="form-control">
+          <option value="1">1 км</option>
+          <option value="2">2 км</option>
+          <option value="3">3 км</option>
+          <option value="4">4 км</option>
+        </select> -->
+        <div class="form-group">
+          <label for="amount">Цена <span id="ex6SliderVal">от {{min_val}} до {{max_val}}</span></label></br>
+          <input id="ex2" type="text" class="span2" value="" data-slider-min="{{min}}" data-slider-max="{{max}}" data-slider-step="1000" data-slider-value="[{{min_val}},{{max_val}}]"/>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <label for="rooms">Количество комнат</label>
+        <select id="rooms" class="form-control">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-6">
+        <a href="{% url 'rents:map' %}">Очистить фильтры</a>
+      </div>
+    </div>
+  </div>
+</section> 
 
+<footer class="py-1 bg-dark fixed-bottom">
+  <div class="container">
+      <div class="row">
+          <div class="col-md-12">
+              <a href="{% url 'rents:list' %}" class="btn btn-lg btn-block btn-primary" id="showAsList">Показать списком</a>
+          </div>
+      </div>
+  </div>
+</footer>
+{% endblock %}
 
-<div class="settings">
-	<div class="wrap">
-		<div class="container">
-			<div class="options">
-				<div class="row">
-					<div class="option check_in col-md-3 col-6">
-						<p>Заезд</p>
-						<span class="set">
-							<input  type="datetime-local" value="{{today}}" min="{{today}}">
-						</span>
-					</div>
-					<div class="option check_out col-md-3 col-6">
-						<p>Выезд</p>
-						<span class="set">
-							<input  type="datetime-local" value="{{tomorrow}}" min="{{today}}">
-						</span>
-					</div>
-					<div class="option price col-md-4 col-12">
-						<div class="slider_line">
-							<p>
-								<label for="amount">Цена:</label>
-								<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;" >
-							</p>
-							<div id="slider-range" onchange="changed()"></div>
-						</div>
-					</div>
-					<div class="option guests col-md-1 col-6 block3">
-						<p>Гостей</p>
-	                <div class="">
-	                    <select name="" id="">
-		                    	<option value="1">1</option>
-		                    	<option value="2">2</option>
-		                    	<option value="3">3</option>
-		                    	<option value="4">4</option>
-		                    	<option value="5">5</option>
-		                    	<option value="6">6</option>
-		                    </select>
-	                </div> 						
-					</div>
-					<div class="option radius col-md-1 col-6 block4">
-						<p>Радиус </p>
-						<div class="">
-		                    <select name="" id="">
-		                    	<option value="1">500m</option>
-		                    	<option value="2">1km</option>
-		                    	<option value="3">2km</option>
-		                    	<option value="4">3km</option>
-		                    	<option value="5">4km</option>
-		                    	<option value="6">5km</option>
-		                    </select>
-		                </div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div> 
-
-<div class="filters dis_no">
-	<div class="row">
-			<div class="block9 col-sm-4 col-12">
-                    <h5>Район </h5>
-                    <div class="">
-                        <select name="" id="">
-		                    	<option value="1">Московский</option>
-		                    	<option value="2">Советский</option>
-		                    	<option value="3">Приволжский</option>
-		                    	<option value="4">Авиастроительный</option>
-		                    	<option value="5">Кировский</option>
-		                    	<option value="6">Ново-Савиновский</option>
-		                    	<option value="7">Вахитовски</option>
-		                    </select>
-                    </div>
-            </div>
-            <div class="block10 col-sm-4 col-12">
-                    <h5>Кол-во комнат </h5>
-                    <div class="prev-input_plus_minus">
-                        <span class="inputminus"><img src="{% static 'imgs/minus.png' %}" alt=""></span>
-                        <input class="inputresult" max="9" type="text" value="1">
-                        <span class="inputplus"><img src="{% static 'imgs/plus.png' %}" alt=""></span>
-                    </div>
-            </div>
-            <div class="block11 col-sm-4 col-12">
-                    <h5>Дополнительно</h5>
-                        <input id="check1" type="checkbox" name="check" value="check1">
-                        <label for="check1">С животными</label>
-                        <input id="check2" type="checkbox" name="check" value="check2">
-                        <label for="check2">С детьми</label>
-            </div>
-	</div>
-</div>
-
-<section>
-	<div class="wrap">
-		<div class="btns btns-mar">
-				<div class="clean_filt">
-					<a href="#">Очистить фильтр</a>
-				</div>
-				<div class="back_map">
-					<a href="{% url 'rents:list' %}" class="btn_bg">Показать списком</a>
-				</div>
-				<div class="extra_filt block-8 dop_filt">
-					<a href="#">Дополнительные фильтры</a>
-				</div>
-		</div>
-	</div>
-</section>
-
+{% block javascript %}
+<script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
 <script>
-	$( function() {
-		$( "#slider-range" ).slider({
-			step: 500,
-			range: true,
-			min: {{min}},
-			max: {{max}},
-			values: [ {{min}}, {{max}} ],
-		slide: function( event, ui ) {
-			$( "#amount" ).val( " " + ui.values[ 0 ] + " - " + ui.values[ 1 ] + " руб/сут" );
-			}
-		});
-		$( "#amount" ).val(  $( "#slider-range" ).slider( "values", 0 ) +
-			" - " + $( "#slider-range" ).slider( "values", 1 ) + " руб/сут");
-		} 
-	);
+
+    $(document).ready(function(){ 
+      if(window.location.href.split('?').length == 2)
+      showAsList.href = "{% url 'rents:list' %}?"+window.location.href.split('?')[1];
+    })
+
+
+    var map, markers, ddt;
+
+
+    
+    DG.then(function() {
+        
+
+        var container = document.createElement('div'),
+                    mapBlock = document.getElementById('map'),
+                    markers = DG.featureGroup();
+
+        container.id = 'map';
+
+
+        mapBlock.appendChild(container);
+
+        map = DG.map('map', {
+            center: [55.797602, 49.099868],
+            zoom: 10,
+            fullscreenControl: false,
+            zoomControl: false,
+            width:"100%"
+        });
+
+        {%for flat in flats%}
+            {% if flat.latitude is not None and flat.longitude is not None%}
+            DG.marker([{{flat.latitude|unlocalize}}, {{flat.longitude|unlocalize}}]).addTo(markers).bindLabel('{{flat.address}}').on('click', function () {
+                window.location.replace("{% url 'rents:apartment' flat.pk %}");
+            });
+            {%endif%}
+        {%endfor%}
+
+
+        markers.addTo(map);
+        
+        map.locate({setView: true, watch: false})
+            .on('locationfound', function(e) {
+                DG.marker([e.latitude, e.longitude]).addTo(map).bindPopup('Вы находитесь здесь!');
+            })
+            .on('locationerror', function(e) {
+                DG.popup()
+                    .setLatLng(map.getCenter())
+                    .setContent('Доступ к определению местоположения отключён')
+                    .openOn(map);
+            });
+
+        document.getElementById('ex2').onchange = showMarkers;
+        document.getElementById('start_date').onchange = showMarkers;
+        document.getElementById('end_date').onchange = showMarkers;
+        document.getElementById('rooms').onchange = showMarkers;
+        //document.getElementById('radius').onchange = showMarkers;
+
+
+        function showMarkers() {
+          markers.removeFrom(map);
+          markers = DG.featureGroup();
+          var promise = DG.ajax('/map/', {
+            type: 'get',
+            data: {
+                min: parseInt(ex2.value.split(',')[0]),
+                max: parseInt(ex2.value.split(',')[1]),
+                start: start_date.value.substr(0,10),
+                end: end_date.value.substr(0,10),
+                rooms: rooms.value,
+                api:true
+            },
+            success: function(data) {
+                data.flats.forEach(element => {
+                  console.log('success', element);
+                  DG.marker([element[1], element[2]]).addTo(markers).on('click', function () {
+                    window.location.replace("/apartment/"+element[0]+" ");
+                });
+                  
+                  
+                });
+                console.log('success', data.flats);
+                ddt = data.flats;
+            },
+            error: function(error) {
+                console.log('error', error);
+            }
+          });
+          markers.addTo(map);
+
+          showAsList.href = "{% url 'rents:list' %}?min="+parseInt(ex2.value.split(',')[0])+"&max="+parseInt(ex2.value.split(',')[1])+"&start="+start_date.value.substr(0,10)+"&end="+end_date.value.substr(0,10)+"&rooms="+rooms.value+""
+
+        };
+    });
+
+    $("#ex2").slider({});
+    $("#ex2").on("load", function(){
+      $("#ex6SliderVal").text("от "+slideEvt.value[0]+" до "+slideEvt.value[1]);
+      $("#ex6SliderVal").val(slideEvt.value);
+    });
+ $("#ex2").on("slide", function(slideEvt) {
+  $("#ex6SliderVal").text("от "+slideEvt.value[0]+" до "+slideEvt.value[1]);
+  $("#ex6SliderVal").val(slideEvt.value);
+});
 </script>
 {% endblock %}

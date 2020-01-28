@@ -1,33 +1,41 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
+{% block title %}Вход для пользователей{% endblock %}
 {% block content %}
 {% load widget_tweaks %}
-<link rel="stylesheet" href="{% static 'css/registration.css' %}">
-<form class="reg" method='POST' action="#">
+<section class="contr" id="contr">
+    <div class="container  p-4 justify-content-center">
+
+<form method='POST' action="#">
     {% csrf_token %}
 	<h1>Вход для пользователей</h1>
 	{% for field in form %}
     <div class="form-group{% if field.errors %} has-error{% endif %}">
-		<div class="num">
-		<p>{{ field.label }}</p>
-		{% render_field field %}
-		</div>
+
+		<label for="exampleInputEmail1">{{ field.label }}</label>
+		{% render_field field class="form-control login" %}
+		
 		{% for error in field.errors %}
 			<p class="help-block" style="color: red;">{{ error }}</p>
 		{% endfor %}
     </div>
-    {% endfor %}
-	<!--<div class="num" >
-		<p>Почта</p>
-		<input type="email" name='username' id="username">
-	</div>
-	<div class="mail">
-		<p>Пароль</p>
-		<input type="password" name='password' id="password">
-	</div>-->
-	
-	<button type="submit">Вход</button>
-	<a href="{% url 'rents:registration' %}" class="gr">Создать аккаунт</a>
-	<a href="{% url 'password_reset' %}" class="gr">Забыли пароль?</a>
+    {% endfor %}	
+	<button type="submit" class="btn btn-lg btn-block  btn-primary">Вход</button>
 </form>
+</div>
+</section>
+
+<footer class="py-2 bg-dark fixed-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <a href="{% url 'rents:registration'%}" class="btn btn-lg btn-block btn-primary">Регистрация</a>
+            </div>
+            <div class="col-md-4 padd">
+                <a href="{% url 'password_reset' %}" class="btn btn-lg btn-block btn-secondary">Восстановить пароль</a>
+            </div>
+        </div>
+    </div>
+    <!-- /.container -->
+  </footer>
 {% endblock %}

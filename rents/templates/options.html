@@ -1,104 +1,90 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
 {% load widget_tweaks %}
-{% block javascript %}
-{% endblock %}
+{% block title %}Главная{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/options.css' %}">
-<section>
-	<div class="wrap">
-		<div class="options">
-			<h2>Настройка учетной записи</h2>
-			<div class="text-center">
-					Привязанная карта: {{user.usersdocuments.ya_card_type}}
-					**** {{user.usersdocuments.ya_card_last4}} <a style="color: blue;" href="{% url 'rents:card' 'delete' %}">Отвязать</a>
-				  </div>
-	  
-			<form class="container" method="post" action="{% url 'rents:options' %}" enctype='multipart/form-data'>
+<section class="contr" id="contr"> 
+    <div class="container">
+        <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+            <div class="text-center">
+                <form class="container" method="post" action="{% url 'rents:card_oper' %}" enctype='multipart/form-data'>
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-primary btn-block" type="submit">Отвязать карту  **** {{user.usersdocuments.ya_card_last4}}</button>
+                </form>
+              </div>
+        </div>
+        <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+            <form class="container" method="post" action="{% url 'rents:options' %}" enctype='multipart/form-data'>
 				{% csrf_token %}
-				<div class="form">
-					{% for field in form %}
-					<label for="{{ field.id_for_label }}">{{ field.label }}</label>
-					{% render_field field class="option" %}
-						{% for error in field.errors %}
-							<p class="help-block">{{ error }}</p>
-						{% endfor %}
-					{% endfor %}
-					<button class="save_pass" type="submit">Сохранить</button>
-				</div>
-			</form>
-
+				
+                {% for field in form %}
+                <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% render_field field class="form-control" %}
+                    {% for error in field.errors %}
+                        <p class="help-block">{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+                </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Сохранить</button>
 			
-		</div>
-		<div class="transaction">
-			<h2>История транзакций</h2>
-			<div>
-				<div class="block">
-					<div class="row h">
-						<div class="rent col-7">
-							<span>Аренда</span> 
-						</div>
-						<div class="price col-3">
-							<span>Стоимость и статус</span> 
-						</div>
-						<div class="type col-2">
-							<span>Тип</span> 
-						</div>
-					</div>
-				</div>
-				{% for payment in payments%}
-				<div class="block">
-					<div class="row">
-						<div class="rent col-7">
-							<span>{{payment.renta.flat}}</span>
-						</div>
-						<div class="price col-3">
-							<span>{{payment.price}} / {{payment.paid_info}}</span>
-						</div>
-						<div class="type col-2">
-							<span>{{payment.status_info}}</span>
-						</div>
-					</div>
-				</div>
-				{%endfor%}
+			</form>
+        </div>
+    </div>
+        <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+            <div class="text-center">
+                <h1 class="h4 text-gray-900 mb-4">Последние транзакции</h1>
+            </div>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Аренда</th>
+                    <th scope="col">Стоимость и статус</th>
+                    <th scope="col">Тип</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {%for item in payments%}
+                    <tr>
+                    <th scope="row">{{item.id}}</th>
+                    <td>{{item.renta}}</td>
+                    <td>{{item.price}} \ {{payment.paid_info}}</td>
+                    <td></td>
+                    </tr>
+                {%endfor%}
+                </tbody>
+            </table>
+            <div class="text-center">
+                <h1 class="h4 text-gray-900 mb-4">Последние аренды</h1>
+            </div>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Адрес</th>
+                    <th scope="col">Даты</th>
+                    <th scope="col">Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {%for item in rents%}
+                    <tr>
+                    <th scope="row">{{item.id}}</th>
+                    <td>{{item.flat}}</td>
+                    <td>{{item.start}} \ {{item.end}}</td>
+                    <td>{{item.status}}</td>
+                    </tr>
+                {%endfor%}
+                </tbody>
+            </table>
+        </div>
 
 
-			</div>
-		</div>
-		<div class="rents">
-			<h2>История аренд</h2>
-			<div>
-				<div class="block">
-					<div class="row h">
-						<div class="rent col-3">
-							<span>Адрес</span> 
-						</div>
-						<div class="price col-6">
-							<span>Даты</span> 
-						</div>
-						<div class="type col-3">
-							<span>Статус</span> 
-						</div>
-					</div>
-				</div>
-				{% for rent in rents%}
-				<div class="block">
-					<div class="row">
-						<div class="rent col-3">
-							<span>{{rent.flat}}</span>
-						</div>
-						<div class="price col-6">
-							<span> с {{rent.start}} по {{rent.end}}</span>
-						</div>
-						<div class="type col-3">
-							<span>{{rent.status_info}}</span>
-						</div>
-					</div>
-				</div>
-				{%endfor%}
-			</div>
-		</div>
-	</div>
-</section>
+     
+  </section>
+{% endblock %}
+
+{% block javascript %}
 {% endblock %}

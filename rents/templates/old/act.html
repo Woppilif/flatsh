@@ -1,0 +1,57 @@
+{% extends 'body.html' %}
+{% load static %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/act.css' %}">
+<form method='POST' class="container" action="#">
+{% csrf_token %}
+<section>
+	<div class="wrap">
+		<div class="act">
+			<div class="time">
+				<h3>{{renta.AccessObj.timeRemaining}}</h3>
+			</div>
+			<h1>Акт приема передачи жилого помещения</h1>
+			<div class="">
+				<div class="row">
+					<div class="col-sm-6" style="text-align: left;">
+						г. {{renta.flat.city}}
+					</div>
+					<div class="col-sm-6" style="text-align: right;">
+						«{{date.day}}» {{date|date:"F" }} {{date.year}} г.
+					</div>
+				
+					<div class="">
+				</br>
+						<p>{{renta.flat.partnerInfo.org_name}}, именуемая в дальнейшем Принимающая сторона, в лице {{renta.flat.partnerInfo.hmrank}} {{renta.flat.partnerInfo.headmaster}}, действующего на основании {{renta.flat.partnerInfo.document}}, с одной стороны, и  {{user.get_full_name }}, именуемый в дальнейшем Гость, с другой стороны, составили настоящий Акт о следующем:</p>
+				
+						<p>1. Принимающая сторона передала, а Гость принял {{renta.flat.rooms}} комнатную квартиру на период с {{renta.start}} по {{renta.end}}, расположенную по адресу: {{renta.flat.addressPartOne}} {{renta.flat.addressPartTwo}}, во временное владение и пользование, а также следующее имущество:</p>
+					</div>
+					<ul>
+						{% for item in renta.flat.flatsItems%}
+						<li>{{item}}</li>
+						{%endfor%}
+					</ul>
+					<div class="">
+						<p>2. Гость осмотрел Квартиру, имущество находящееся в ней и претензий к ее состоянию не имеет. </br></p>
+					
+						<p style="text-align: center;">Доступ в Квартиру был предоставлен посредством электронного ключа (программного обеспечения). </br></p>
+				
+						<p>3. Гостем внесена оплата в размере {{renta.getPrice}} руб., а также сумма залога в размере {{renta.getDeposit}} руб. онлайн при заселении.</p>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="btns">
+			<button href="#" class="btn_bor" type="submit" name="cancel">Отказаться</button>
+			<button href="#" class="btn_bor" type="submit" name="open">Открыть дверь</button>
+			<button href="#" class="btn_bg" type="submit" name="pay">Подписать и оплатить {{renta.getPrice}}</button>
+		</div>
+	</div>
+</section>
+</form>
+{% endblock %}

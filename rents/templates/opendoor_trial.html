@@ -1,35 +1,95 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
+{% block title %}Главная{% endblock %}
+{% load l10n %}
+{% block content %}
+<header class="bg-while text-white"  id="map">
+  
+</header>
 
-{% block javascript %}
+<section id="filler" style="position:relative; padding-top:20px;">
+  <div class="container" style="padding-top:25px;">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <h2>{{renta.flat.addressPartOne}}</h2>
+          <p class="lead">{{renta.flat.hint}}</p>
+          {% if renta.flat.app_status is False%}
+            <p  class="lead" style="color: red;">Внимание! Связь электронного замка и нашего сервера была потеряна. Если прошло более 2 минут с момента появления этого сообщения, обратитесь к менеджеру.</p>
+          {%endif%}
+        </div>
+      </div>
+    </div> 
+  <form method='POST' action="{% url 'rents:trial_renta' renta.trial_key %}">
+    {% csrf_token %}  
+</section> 
 
-<!-- Script of Map 2GIS -->
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<!-- Bootstrap JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-<!-- FontAwesome -->
-<script src="https://kit.fontawesome.com/230cba36d5.js" crossorigin="anonymous"></script>
-<script src="{% static 'js/scripts.js' %}"></script>
+<footer class="py-1 bg-dark fixed-bottom">
+ 
+      <div class="container">
+          <div class="row">
+              <div class="col-md-12">
+                  <button type="submit" class="btn btn-lg btn-block btn-primary" name="open">Открыть дверь | {{renta.AccessObj.timeRemaining}}</button>
+              </div>
+          </div>
+      </div>
+  </form>
 {% endblock %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/opendoor.css' %}">
-{% include 'map_part.html' %}
-<form method='POST' class="container" action="{% url 'rents:trial_renta' renta.trial_key %}">
-{% csrf_token %}
-<div class="section">
-	<div class="wrap">
-		<div class="geo">{{renta.flat.addressPartOne}}</div>
-		<div class="code">{{renta.flat.hint}}</div>
-		<div class="code">{{renta.AccessObj.timeRemaining}}</div>
-		{% if renta.flat.app_status is False%}
-		<p style="color: red;">Внимание! Связь электронного замка и нашего сервера была потеряна. Если прошло более 2 минут с момента появления этого сообщения, обратитесь к менеджеру.</p>
-		{%endif%}
-		<div class="btns">
-			<button class="btn_bg" type="submit" name="open">Открыть дверь</button>
-		</div>
-	</div>
-</div>
-</form>
+{% block javascript %}
+<script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
+<script>
+
+ 
+
+var map, markers;
+    DG.then(function() {
+        
+
+        var container = document.createElement('div'),
+                    mapBlock = document.getElementById('map'),
+                    markers = DG.featureGroup();
+
+        container.id = 'map';
+
+
+        mapBlock .appendChild(container);
+
+        map = DG.map('map', {
+            {% if renta.flat.latitude is not None and renta.flat.longitude is not None%}
+                center: [{{renta.flat.latitude|unlocalize}}, {{renta.flat.longitude|unlocalize}}],
+            {%else%}
+                center: [55.797602, 49.099868],
+            {%endif%}
+            zoom: 10,
+            fullscreenControl: false,
+            zoomControl: false,
+            width:"100%"
+        });
+
+        {% if renta.flat.latitude is not None and renta.flat.longitude is not None%}
+        DG.marker([{{renta.flat.latitude|unlocalize}}, {{renta.flat.longitude|unlocalize}}]).addTo(markers).on('click', function () {
+            window.location.replace("{% url 'rents:apartment' renta.flat.pk %}");
+        });
+        {%endif%}
+
+        markers.addTo(map);
+
+        map.locate({setView: true, watch: false})
+            .on('locationfound', function(e) {
+                DG.marker([e.latitude, e.longitude]).addTo(map).bindPopup('Вы находитесь здесь!');
+            })
+            .on('locationerror', function(e) {
+                DG.popup()
+                    .setLatLng(map.getCenter())
+                    .setContent('Доступ к определению местоположения отключён')
+                    .openOn(map);
+            });
+
+        document.getElementById('slider-range').onclick = showMarkers;
+
+        function showMarkers() {
+           console.log($( "#slider-range" ).slider( "values", 0 ) );
+        };
+    });      
+</script>
 {% endblock %}

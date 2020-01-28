@@ -44,7 +44,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def addLog(self,id,comment):
-        SystemLogs.objects.create(flat_id=int(id),created_at=timezone.now(),comment=comment)
+        SystemLogs.objects.create(device_id=int(id),created_at=timezone.now(),comment=comment)
         return True
 
     # Receive message from WebSocket

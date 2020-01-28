@@ -5,6 +5,11 @@
  */
 
 
+#hhddrr
+{
+  height: 100vh;
+  padding: 300px 0 100px;
+}
 
 header {
   padding: 300px 0 100px;
@@ -47,4 +52,16 @@ section {
   border: none;
   border-bottom: 2px solid black;
   border-radius: 0em;
+}
+
+@media only screen and (max-width: 768px) {
+  .padd
+  {
+    padding-top: 5px;
+  }
+}
+
+#contrpadd
+{
+  padding-top: 60px;
 }

@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>{% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.css' %}">
+  <link rel="stylesheet" href="{% static 'css/scrolling-nav.css' %}">
+  <link rel="stylesheet" href="{% static 'css/bootstrap-slider.min.css' %}">
+  <script src="https://kassa.yandex.ru/checkout-ui/v2.js"></script>
+</head>
+
+<body id="page-top">
+  <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+        <div class="container">
+        <a class="navbar-brand js-scroll-trigger" href="{%url 'rents:map'%}">FlatSharing</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link js-scroll-trigger" href="{%url 'rents:map'%}">Главная</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link js-scroll-trigger" href="{%url 'rents:favorites'%}">Избранное</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link js-scroll-trigger" href="{%url 'rents:options'%}">Настройки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link js-scroll-trigger" href="{%url 'logout'%}">Выход</a>
+            </li>
+            {%else%}
+            <li class="nav-item"><a class="nav-link js-scroll-trigger" href="{%url 'rents:index'%}">Главная</a></li>
+            <li class="nav-item"><a class="nav-link js-scroll-trigger" href="{%url 'rents:user_agreement'%}">Условия пользования</a></li>
+			<li class="nav-item"><a class="nav-link js-scroll-trigger" href="{%url 'rents:registration'%}">Регистрация</a></li>
+			<li class="nav-item"><a class="nav-link js-scroll-trigger" href="{%url 'login'%}">Вход</a></li>
+			{%endif%}
+            </ul>
+        </div>
+        </div>
+    </nav>
+    {% if messages %}
+    <div class="container" style="padding-top: 60px;">
+      {% for message in messages %}
+        <div class="alert alert-dismissible {% if message.tags %}{% if message.tags == 'error' %}alert-danger{% elif message.tags == 'debug' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %}{% else %}alert-info{% endif %}" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {{ message|safe }}
+        </div>
+      {% endfor %}
+    </div>
+	{% endif %}
+    {% block content %}
+    {% endblock %}
+
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-slider.min.js' %}"></script>
+
+  
+    {% block javascript %}
+    {% endblock %}
+</body>
+</html>

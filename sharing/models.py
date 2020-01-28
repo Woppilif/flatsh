@@ -11,7 +11,7 @@ from PIL import Image
 from yandex_checkout import Payment,Configuration 
 from django.conf import settings
 from phone_field import PhoneField
-
+import decimal
 Configuration.account_id = settings.YA_ACCOUNT_ID
 Configuration.secret_key = settings.YA_SECRET_KEY
 
@@ -55,7 +55,7 @@ class Partners(models.Model):
 
 class Workers(models.Model):
     SHIRT_SIZES = (
-        (1, 'Оператор'),
+        (1, 'Менеджер'),
         (2, 'Клининг'),
         (3, 'Мастер'),
     )
@@ -97,18 +97,38 @@ class FlatManager(models.Manager):
 
     def get_flat(self,flat_id):
         try:
-            self.get(pk=flat_id)
+            self.get(device__pk=flat_id)
             return True
         except:
             return False
+        
 
     def update_flat_status(self,flat_id,status):
         if self.get_flat(flat_id):
-            flat =  self.get(pk=flat_id)
-            flat.app_status = status
-            flat.save()
+            flat =  self.get(device__pk=flat_id)
+            flat.device.status = status
+            flat.device.save()
             return True
         return False
+
+def device_status(value):
+    print()
+    print("This is device_status")
+    print(value)
+
+class Devices(models.Model):
+    open_key = models.CharField(max_length=60, blank=True, null=True)
+    secret_key = models.CharField(max_length=60, blank=True, null=True,default=None)
+    app_status = models.BooleanField(blank=True, null=True,default=None)
+    created_at = models.DateTimeField(null=True,blank=True,default=None)
+    status = models.BooleanField(null=True,default=False,validators=[device_status])
+    description = models.CharField(max_length=60, blank=True, null=True,default=None)
+
+    def flatId(self):
+        return Flats.objects.filter(device=self).first()    
+    class Meta:
+        verbose_name = 'Устройство'
+        verbose_name_plural = 'Устройства'
 
 class Flats(models.Model):
     DOOR_STATS = (
@@ -121,8 +141,8 @@ class Flats(models.Model):
         ('BUCHEN', 'Забронирована'),
         ('U', 'Свободна')
     )
-    district = models.ForeignKey(Districts, on_delete=models.CASCADE)
-    street = models.CharField(max_length=50, blank=True, null=True)
+    district = models.ForeignKey(Districts, on_delete=models.CASCADE)#
+    street = models.CharField(max_length=50, blank=True, null=True)#
     house_number = models.CharField(max_length=10, blank=True, null=True)
     building = models.CharField(max_length=10, blank=True, null=True)
     flat_number = models.CharField(max_length=10, blank=True, null=True)
@@ -138,8 +158,13 @@ class Flats(models.Model):
     status = models.CharField(max_length=10,blank=True, null=True,choices=FLAT_STATS)
     door_status = models.BooleanField(blank=True, null=True,choices=DOOR_STATS)
     cleaning_time = models.TimeField(blank=True, null=True,default="3:00")
-    app_id = models.CharField(max_length=60, blank=True, null=True)
-    app_status = models.BooleanField(blank=True, null=True,default=None)
+    bxcal_id = models.IntegerField(blank=True, null=True,default=None)
+    metro_station = models.CharField(max_length=60, blank=True, null=True)
+    internal_id = models.CharField(max_length=60, blank=True, null=True)
+
+
+
+    device = models.ForeignKey(Devices, on_delete=models.CASCADE,default=None, blank=True, null=True)
 
     flas = FlatManager()
     objects = models.Manager()
@@ -202,6 +227,12 @@ class Flats(models.Model):
     def getPreview(self):
         return Images.objects.filter(flat_id=self.pk).first()
 
+    def getCurrentRenta(self,date):
+        return Rents.objects.filter(flat=self,start__lte=date,end__gte=date,status=True,paid=True).last()
+
+    def getFirstFutureRenta(self,date):
+        return Rents.objects.filter(flat=self,start__gte=date,status=True,paid=True).last()
+
 class FlatsItems(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
     item_name = models.CharField(max_length=50, blank=True, null=True,verbose_name="Предмет (Стол, стул)")
@@ -225,17 +256,21 @@ def get_file_path_users(instance, filename):
 
 class Images(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
-    images = models.ImageField(blank=True, null=True,upload_to=get_file_path)
+    images = models.CharField(max_length=255,blank=True, null=True,default=None)
+    #models.ImageField(blank=True, null=True,upload_to=get_file_path,default='/imgs/home.png')
+    img_url = models.CharField(max_length=255,blank=True, null=True,default=None)
+    urled = models.BooleanField(blank=True, null=True,default=False)
+
     def __str__(self):
         return str(self.id)
     class Meta:
         verbose_name = 'Изображение'
         verbose_name_plural = 'Изображения'
-
+    '''
     def delete(self, *args, **kwargs):
         os.remove(os.path.join(settings.MEDIA_ROOT, str(self.images)))
         super(Images,self).delete(*args,**kwargs)
-
+    
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         img = Image.open(self.images.path)
@@ -266,46 +301,25 @@ class Images(models.Model):
             img.thumbnail((500, 300))
 
         img.save(self.images.path)
+    '''
 
 class RentsManager(models.Manager):
 
     def createRent(self,flat,user,start,end):
-        return self.create(flat=flat,rentor=user,start=start,end=end,status=True,created_at=timezone.now(),booking=timezone.now() + timedelta(hours=2))
-
-    def cancelRent(self,rent,user):
-        obj = self.get(id=rent.id,rentor=user)
-        obj.status = None
-        obj.save()
+        return self.create(flat=flat,rentor=user,start=start,end=end,status=True,created_at=timezone.now(),booking=start + timedelta(hours=2))
     
-    def GetRentedCalendar(self,current_flat):
-        if current_flat is None:
-            return []
-        rented = self.filter(Q(start__gte=timezone.now()) | Q(start__lte=timezone.now(), end__gte=timezone.now()),flat=current_flat,status=True)
-        if len(rented) < 1:
-            return []
-        disabledDates = []
-        for i in rented:
-            for x in range(int((i.end-i.start).days)+1):
-                disabledDates.append(str((i.start+ timedelta(days=x)).date()))
-        return disabledDates
-    
-    def RentedObjects(self,start,end,current_flat):
-        rented = Rents.objects.filter(Q(start__gte=start) | Q(start__lte=start, end__gte=end),flat=current_flat,status=True).count()
-        if rented > 0:
-            return True
-        return False
-
-    
+    def createRentExt(self,flat,user,start,end):
+        return self.update_or_create(flat=flat,rentor=user,start=start,end=end,status=True,paid=True,booking=start + timedelta(hours=2))
 
 class Rents(models.Model):
     flat = models.ForeignKey(Flats, on_delete=models.CASCADE,related_name="Квартира",related_query_name="Квартира")
     rentor = models.ForeignKey(User, models.DO_NOTHING)
-    start = models.DateTimeField(verbose_name='Начало аренды')
-    end = models.DateTimeField(verbose_name='Окончание аренды')
-    booking = models.DateTimeField(null=True,verbose_name='Окончание бронироваия')
+    start = models.DateTimeField(verbose_name='Начало аренды',null=True,default=None)
+    end = models.DateTimeField(verbose_name='Окончание аренды',null=True,default=None)
+    booking = models.DateTimeField(null=True,blank=True,verbose_name='Окончание бронироваия',default=None)
     status = models.BooleanField(null=True,default=False)
     paid = models.BooleanField(null=True,default=False)
-    created_at = models.DateTimeField(null=True,default=False)
+    created_at = models.DateTimeField(null=True,blank=True,default=None)
     trial_key = models.CharField(max_length=80, blank=True, null=True,default=None)
     renta = RentsManager()
     objects = models.Manager()
@@ -335,10 +349,7 @@ class Rents(models.Model):
 
     def endDate(self):
         return str(self.end)
-
-    def getAlreardyRended(self):
-        return self.filter(Q(start__gte=timezone.now()) | Q(start__lte=timezone.now(), end__gte=timezone.now()))
-
+  
     def AccessObj(self):
         return Access.objects.filter(renta=self.id,user=self.rentor).last()
 
@@ -353,176 +364,17 @@ class Rents(models.Model):
 
     def getDeposit(self):
         return self.flat.deposit
-    '''
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            if self.checkDates():
-                super().save(*args, **kwargs)
-        else:
-            print(self.checkDates())
-            if self.checkDates():
-                days, hours = self.prolongRent()
-                if days >= 0 or hours >= 0:
-                    super().save(*args, **kwargs)
-    '''
-    
-    def checkDates(self):
-        if self.end < self.start:
-            print("END DATE LESS THAN START! ")
-            return False
-        '''
-        if self.start.date() < timezone.now().date():
-            print("here 2")
-            return False
-        '''
-        if self.getAvailableHours() is not None:
-            if self.start < self.getAvailableHours() and self.status is not None:
-                print("here 3")
-                return False
-        rented = Rents.objects.filter(Q(start__gte=self.start) | Q(start__lte=self.start, end__gte=self.end),flat=self.flat,status=True).exclude(id=self.id).count()
-        if rented > 0 and self.status is not None:
-            print("here 4")
-            return False
-        return True
 
-    def prolongRent(self):
-        date = Rents.objects.filter(start__gte=self.end,flat=self.flat,status=True).first()
-        if date is not None:
-            return self.dur(date.start - self.end-timedelta(hours=self.flat.cleaning_time.hour,minutes=self.flat.cleaning_time.minute))
-        return self.dur(timedelta(days=100))
-    
-    def dur(self,duration):
-        days, seconds = duration.days, duration.seconds
-        hours = days * 24 + seconds // 3600
-        return days, hours
+    def getPayments(self):
+        return Payments.objects.filter(renta=self)
 
-    def getAvailableHours(self):
-        lastRent = Rents.objects.filter(status=True,flat=self.flat).exclude(id=self.id).last()
-        if lastRent is not None:
-            return lastRent.end + timedelta(hours=self.flat.cleaning_time.hour,minutes=self.flat.cleaning_time.minute)
-        return None
-
-class PaymentsManager(models.Manager):
-
-    def createPayment(self,renta = None,p_type = -1,user = None):
-        if p_type == 1:
-            price = renta.getDeposit()
-            addCard = False
-            payment_method = renta.rentor.usersdocuments.yakey
-            rentor = renta.rentor
-        elif p_type == 2:
-            price = renta.getPrice()
-            addCard = False
-            payment_method = renta.rentor.usersdocuments.yakey
-            rentor = renta.rentor
-        elif p_type == 3:
-            price = renta.getPrice()
-            payment_method = None
-            addCard = True
-            rentor = user
-        else:
-            price = 1
-            payment_method = None
-            addCard = True
-            rentor = user
-
-        deposit, created = self.get_or_create(rentor = rentor,renta = renta,price = price,payment_type = p_type)
-        if created is True:
-            deposit.date = timezone.now()
-            deposit.save()
-        paymentObjectId = self.paymentObject(price,payment_method,deposit.pk,addCard,renta)
-        self.setData(paymentObjectId,deposit)
-        if p_type == 0:
-            return paymentObjectId
-        elif p_type == 2:
-            response = self.capture(paymentObjectId,deposit.price)
-            if response.status == 'succeeded':
-                dbObject = self.setData(paymentObjectId,deposit)
-                dbObject.status = True
-                dbObject.save()
-                dbObject.renta.paid =  True
-                dbObject.renta.save()
-        return deposit
-    
-    def create_trial(self,renta):
-        deposit, created = self.get_or_create(rentor = renta.rentor,
-                                                renta = renta,
-                                                price = renta.getPrice(),
-                                                payment_type = 3
-                                            )
-        if created is True:
-            paymentObjectId = self.paymentObject(renta.getPrice(),None,deposit.pk,True,renta)
-            print(paymentObjectId)
-            self.setData(paymentObjectId,deposit)
-        return deposit
-
-    def capture(self,paymentObject,value):
-        '''
-            paymentObject.id required!
-        '''
-        return Payment.capture(
-            paymentObject.id,
-            {
-                "amount": {
-                    "value": value,
-                    "currency": "RUB"
-                }
-            },
-            str(uuid.uuid4()) #idempotence key
-        )
-
-    def cancel(self):
-        pass
-
-    def paymentObject(self, value = 1, method_id = '', payment_id = None, addCard = False,renta = None):
-        if addCard:
-            if value == 1:
-                url = "http://{0}/card/{1}".format(settings.ALLOWED_HOSTS[0],payment_id)
-            else:
-                url = "http://{0}/trial/{1}/pay".format(settings.ALLOWED_HOSTS[0],renta.trial_key)
-            return Payment.create({
-                "amount": {
-                    "value": value,
-                    "currency": "RUB"
-                },
-                "payment_method_data": {
-                "type": "bank_card"
-                },
-                "confirmation": {
-                    "type": "redirect",
-                    "return_url": url
-                },
-                "description": "Заказ ID:{0}".format(payment_id),
-                "save_payment_method": "true"
-                },str(uuid.uuid4()))
-        return Payment.create({
-            "amount": {
-                "value": value,
-                "currency": "RUB"
-            },
-            "payment_method_id": method_id,
-            "description": "Заказ ID:{0}".format(payment_id)
-        })
-
-    def find_one(self,paymentObjectId):
-        print(paymentObjectId)
-        return Payment.find_one(paymentObjectId)
-
-    def setData(self,paymentObject,dbObject):
-        print(paymentObject)
-        paymentObject = self.find_one(paymentObject.id)
-        dbObject.payment_id = paymentObject.id
-        dbObject.payment_status = paymentObject.status
-        dbObject.created_at = paymentObject.created_at
-        dbObject.expires_at = paymentObject.expires_at
-        dbObject.save()
-        return dbObject
 
 class Payments(models.Model):
     P_TYPES = (
         (0, 'Подтверждение аккаунта'),
         (1, 'Депозит'),
-        (2, 'Полная стоимость')
+        (2, 'Полная стоимость'),
+        (3, 'Оплата картой клиента')
     )
     PAID_TYPES = (
         (False, 'Не оплачен'),
@@ -541,8 +393,11 @@ class Payments(models.Model):
     expires_at = models.DateTimeField(null=True,blank=True)
     captured_at = models.DateTimeField(null=True,blank=True)
 
-    paym = PaymentsManager()
-    objects = models.Manager()
+    def __str__(self):
+        return "{0} {1}. Дата и время создания: {2}".format(self.price,self.transactionStatus(),self.date)
+
+    def transactionStatus(self):
+        return [i for i in self.PAID_TYPES if i[0] == self.status][0][1]
 
     def get(self):
         return Payment.find_one(self.payment_id)
@@ -564,11 +419,100 @@ class Payments(models.Model):
             str(uuid.uuid4()) #idempotence key
         )
     
-    def status_info(self):
-        return [i[1] for i in self.P_TYPES if i[0] == self.payment_type][0]
+    def payPrice(self):
+        if self.rentor is None:
+            print("r")
+            return None
+        if self.price is None:
+            print("p")
+            return None
+        if self.payment_type != 2:
+            print("pt")
+            return None
+        if self.status is True:
+            print("s")
+            return None
+        return Payment.create({
+            "amount": {
+                "value": self.renta.getPrice(),
+                "currency": "RUB"
+            },
+            "capture": "true",
+            "payment_method_id": self.rentor.usersdocuments.yakey,
+            "description": "Заказ ID:{0}".format(self.pk)
+        })
 
-    def paid_info(self):
-        return [i[1] for i in self.PAID_TYPES if i[0] == self.status][0]
+    def rentaPaid(self):
+        if self.status is False:
+            return None
+        self.renta.paid = True
+        self.renta.save()
+        return self
+
+    def setStatus(self):
+        if self.payment_status == 'canceled':
+            self.status = None
+        elif self.payment_status == 'succeeded':
+            self.status = True
+        self.save()
+        return self
+
+    def setInfo(self,paymentObject):
+        if paymentObject is None:
+            return None
+        self.payment_id = paymentObject.id
+        self.payment_status = paymentObject.status
+        self.created_at = paymentObject.created_at
+        self.expires_at = paymentObject.expires_at
+        self.save()
+        return self
+
+
+    def findOne(self):
+        if self.payment_id is None:
+            return None
+        return Payment.find_one(self.payment_id)
+
+    def createPaymentObject(self,capture = False, save_payment_method = True):
+        '''
+            Returns Yandex Kassa Object if rentor i.e user and price are set.
+        '''
+        if self.rentor is None:
+            return None
+        if self.price is None:
+            return None
+        return Payment.create({
+            "amount": {
+                "value": "{0}".format(str(decimal.Decimal(self.price))),
+                "currency": "RUB"
+            },
+
+            "confirmation": {
+                "type": "embedded"
+            },
+            "receipt": {
+            "customer": {
+                "full_name": "{0} {1}".format(self.rentor.first_name,self.rentor.last_name),
+                "email": "{0}".format(self.rentor.email)
+            },
+            "items": [
+                    {
+                        "description": "Оплата аренды",
+                        "quantity": "2.00",
+                        "amount": {
+                            "value": "{0}".format(str(decimal.Decimal(self.price))),
+                            "currency": "RUB"
+                        },
+                        "vat_code": "2",
+                        "payment_mode": "full_prepayment",
+                        "payment_subject": "commodity"
+                    }
+                ]
+            },
+            "capture": capture,
+            "save_payment_method": save_payment_method,
+            "description": "Оплата аренды №{0}".format(self.pk)
+        })
 
     class Meta:
         verbose_name = 'Транзакция Yandex'
@@ -576,6 +520,7 @@ class Payments(models.Model):
 
 
 class SystemLogs(models.Model):
+    device = models.ForeignKey(Devices, models.DO_NOTHING,blank=True, null=True)
     user = models.ForeignKey(User, models.DO_NOTHING,blank=True, null=True)
     partner = models.ForeignKey(Partners, on_delete=models.CASCADE,blank=True, null=True)
     worker = models.ForeignKey(Workers, on_delete=models.CASCADE,blank=True, null=True)
@@ -684,7 +629,7 @@ class Access(models.Model):
                 return "у вас осталось {0} минут".format(str(self.end - now))
             else:
                 if (now < self.start):
-                    return "Доступна с {0}".format(self.start.strftime("%b %d %Y %H:%M:%S"))
+                    return "Доступна с {0}".format(timezone.make_naive(self.start).strftime("%b %d %Y %H:%M:%S"))
                 return "Время осмотра закончилось"
         else:
             return "осталось 10 минут"
@@ -722,6 +667,18 @@ class UsersDocuments(models.Model):
     class Meta:
         verbose_name = 'Документы пользователей'
         verbose_name_plural = 'Документы пользователей'
+
+    def addCard(self,payment):
+        self.yakey = payment.payment_method.id
+        self.ya_card_type = payment.payment_method.card.card_type
+        self.ya_card_last4 = payment.payment_method.card.last4
+        self.save()
+
+    def deleteCard(self):
+        self.yakey = None
+        self.ya_card_type = None
+        self.ya_card_last4 = None
+        self.save()
     
 class Favorites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -729,6 +686,9 @@ class Favorites(models.Model):
     class Meta:
         verbose_name = 'Закладка пользователя'
         verbose_name_plural = 'Закладки пользователей'
+
+
+
 
 
 

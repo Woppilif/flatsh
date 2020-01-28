@@ -1,0 +1,22 @@
+{% for flat in flats %}
+<div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+    <div class="col-md-5 d-4 d-lg-block">
+        {%if flat.getPreview is None%}
+            <img class="bd-placeholder-img" width="450" height="350"  src="https://image.shutterstock.com/image-photo/mountains-during-sunset-beautiful-natural-260nw-407021107.jpg" alt="apartment">
+        {%else%}
+            {% if flat.getPreview.urled is False %}
+                <img class="bd-placeholder-img" width="450" height="350"  src="/media/{{flat.getPreview.images}}" alt="apartment">
+            {%else%}
+                <img class="bd-placeholder-img" width="450" height="350" src="{{flat.getPreview.img_url}}" alt="apartment">
+            {%endif%}
+        {%endif%}
+    </div>
+    <div class="col-md-7 p-4 d-flex flex-column position-static">
+        <!--<strong class="d-inline-block mb-2 text-primary">World</strong>-->
+        <h3 class="mb-0">{{flat.city}} {{flat.address}}</h3>
+        <div class="mb-1 text-muted">{{flat.price}} руб/сутки</div>
+        <p class="card-text mb-auto">{{flat.description| safe |slice:":255"}}...</p>
+        <a href="{% url 'rents:apartment' flat.pk %}" class="stretched-link">Подробнее</a>
+    </div>
+</div>
+{%endfor%}

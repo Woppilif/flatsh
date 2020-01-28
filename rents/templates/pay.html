@@ -1,0 +1,27 @@
+{% extends 'includes/main.html' %}
+{% load static %}
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<section class="contr" id="contr">
+    <div class="container">
+        <div id="payment-form"></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascript %}
+<script>
+//Инициализация виджета. Все параметры обязательные.
+const checkout = new window.YandexCheckout({
+    confirmation_token: '{{payment.confirmation.confirmation_token}}', //Токен, который перед проведением оплаты нужно получить от Яндекс.Кассы
+    return_url: "{%url 'rents:trial_renta' trial_key %}", //Ссылка на страницу завершения оплаты
+    error_callback(error) {
+        //Обработка ошибок инициализации
+    }
+});
+
+//Отображение платежной формы в контейнере
+checkout.render('payment-form');
+</script>
+{% endblock %}

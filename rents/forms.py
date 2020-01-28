@@ -3,9 +3,9 @@ from django import forms
 from django.core.exceptions import ValidationError
 import time
 from django.core.mail import send_mail
-from sharing.models import UsersDocuments, Rents, Access
+from sharing.models import UsersDocuments, Rents, Access, Payments
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db.models import Q
 
 class CustomUserCreationForm(forms.Form):
@@ -69,6 +69,28 @@ class CustomUserCreationForm(forms.Form):
         )
         return user,password
 
+class RentaPayForm(forms.Form):
+    def __init__(self,renta = None, *args, **kwargs):
+        super(RentaPayForm, self).__init__(*args, **kwargs)
+        self.renta = renta
+
+    def is_valid(self):
+        if self.renta is not None:
+            return True
+        return False
+
+    def save(self, commit=True):
+        paymentObj, created = Payments.objects.get_or_create(
+            rentor = self.renta.rentor,
+            renta = self.renta,
+            price = 1,
+            payment_type = 2,
+            status = False,
+        )
+        paymentObj.setInfo(paymentObj.payPrice()).setStatus().rentaPaid()
+        if paymentObj.status is True:
+            access, created = Access.access.createPaidAccess(paymentObj.renta)
+        return self.renta.id
 
 class RentForm(forms.Form):
     def __init__(self,current_flat = None, rentor = None , *args, **kwargs):
@@ -77,7 +99,7 @@ class RentForm(forms.Form):
         self.rentor = rentor
 
     start = forms.DateTimeField(input_formats=["%Y-%m-%dT%H:%M"])
-    end = forms.DateTimeField(input_formats=["%Y-%m-%dT%H:%M"])
+    end = forms.IntegerField()
 
     def clean_start(self):
         start = self.cleaned_data['start']
@@ -86,17 +108,19 @@ class RentForm(forms.Form):
         return start
 
     def clean_end(self):
-        end = self.cleaned_data['end']
-        if end.date() < timezone.now().date():
+        end = int(self.cleaned_data['end'])
+        if end < 1:
             raise  ValidationError("Окончание аренды не может быть позже сегодняшней даты")
+        print(end)
         return end
 
     def clean(self):
-        if self.cleaned_data['end'] <= self.cleaned_data['start']:
-            self.add_error('start',"Окончание аренды не может быть позднее начала")
-            raise  ValidationError("Окончание аренды не может быть позднее начала")
+        print(self.cleaned_data)
+        end = self.cleaned_data['start'] + timedelta(days=int(self.cleaned_data['end']))
+        end = end.replace(hour=12,minute=0)
         r = Rents.objects.filter(
-            end__gte=self.cleaned_data['start'],start__lte=self.cleaned_data['end'],
+            start__gte=self.cleaned_data['start'].replace(hour=14,minute=0),
+            start__lte=end,
             flat=self.current_flat,status=True)
         if r.count():
             self.add_error('start',"Данные даты уже забронированы.")
@@ -107,8 +131,8 @@ class RentForm(forms.Form):
         renta = Rents.renta.createRent(
             flat = self.current_flat,
             user = self.rentor,
-            start = self.cleaned_data['start'],
-            end = self.cleaned_data['end'] 
+            start = timezone.make_naive(self.cleaned_data['start'].replace(hour=14,minute=0)),
+            end = timezone.make_naive((self.cleaned_data['start'] + timedelta(days=int(self.cleaned_data['end']))).replace(hour=12,minute=0))
         )
         access = Access.access.createAccess(renta)
         return renta
@@ -118,6 +142,7 @@ class RentForm(forms.Form):
         model = Rents  
 
 class UserDocumentsForm(forms.ModelForm):
+    
     class Meta:
         #exclude = ('user',)
         fields = ('firstname','lastname','image_one','image_two',)

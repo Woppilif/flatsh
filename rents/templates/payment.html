@@ -1,37 +1,40 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
-{% load widget_tweaks %}
-
+{% block title %}Главная{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row justify-content-center">
-  
-    <div class="col-xl-12 col-lg-6 col-md-6">
-  <div class="card o-hidden border-0 shadow-lg my-5">
-    <div class="card-body p-0">
-      <!-- Nested Row within Card Body -->
-      <div class="row">
-        <div class="col-lg-12">
-          <div class="p-5">
-            <div class="text-center">
-              <h1 class="h4 text-gray-900 mb-4">Привязка карты</h1>
+<section class="contr" id="contr"> 
+    <div class="container">
+        <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+            <div class="col-md-12">
+                <h1>Привязка карты к аккаунту</h1>
             </div>
-            Данная процедура обязательна для всех пользователей сервиса. 
-            <form method="post" action="{% url 'rents:card' %}" enctype='multipart/form-data'>
-              {% csrf_token %}
-              <button class="btn btn-lg btn-primary btn-block" type="submit">Привязать карту</button>
-            </form>
-          </div>
-        </div>
+            
+            <div class="col-md-12">
+                <div id="payment-form"></div>
+                <p>После привязки карты с нее спишется 1 рубль и сразу же будет возвращён. Для просмотра всех транзакций Вы можете зайти в раздел настройки.</p>
+            </div>
+            
+        
       </div>
-    </div>
-  </div>
-  </div>
-  </div>
-  
-  
-  </div>
+  </section>
 
+{% endblock %}
 
+{% block javascript %}
+
+<script src="https://kassa.yandex.ru/checkout-ui/v2.js"></script>
+<script>
+    //Инициализация виджета. Все параметры обязательные.
+    const checkout = new window.YandexCheckout({
+        confirmation_token: '{{payment.confirmation.confirmation_token}}', //Токен, который перед проведением оплаты нужно получить от Яндекс.Кассы
+        return_url: "{% url 'rents:card' code=id %}", //Ссылка на страницу завершения оплаты
+        error_callback(error) {
+            //Обработка ошибок инициализации
+        }
+    });
+    
+    //Отображение платежной формы в контейнере
+    checkout.render('payment-form');
+</script>
 {% endblock %}

@@ -1,57 +1,67 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
-
-{% block javascript %}
-{% endblock %}
+{% block title %}Главная{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/act.css' %}">
-<form method='POST' class="container" action="#">
-{% csrf_token %}
-<section>
-	<div class="wrap">
-		<div class="act">
-			<div class="time">
-				<h3>{{renta.AccessObj.timeRemaining}}</h3>
-			</div>
-			<h1>Акт приема передачи жилого помещения</h1>
-			<div class="">
-				<div class="row">
-					<div class="col-sm-6" style="text-align: left;">
-						г. {{renta.flat.city}}
-					</div>
-					<div class="col-sm-6" style="text-align: right;">
-						«{{date.day}}» {{date|date:"F" }} {{date.year}} г.
-					</div>
-				
-					<div class="">
-				</br>
-						<p>{{renta.flat.partnerInfo.org_name}}, именуемая в дальнейшем Принимающая сторона, в лице {{renta.flat.partnerInfo.hmrank}} {{renta.flat.partnerInfo.headmaster}}, действующего на основании {{renta.flat.partnerInfo.document}}, с одной стороны, и  {{user.get_full_name }}, именуемый в дальнейшем Гость, с другой стороны, составили настоящий Акт о следующем:</p>
-				
-						<p>1. Принимающая сторона передала, а Гость принял {{renta.flat.rooms}} комнатную квартиру на период с {{renta.start}} по {{renta.end}}, расположенную по адресу: {{renta.flat.addressPartOne}} {{renta.flat.addressPartTwo}}, во временное владение и пользование, а также следующее имущество:</p>
-					</div>
-					<ul>
-						{% for item in renta.flat.flatsItems%}
-						<li>{{item}}</li>
-						{%endfor%}
-					</ul>
-					<div class="">
-						<p>2. Гость осмотрел Квартиру, имущество находящееся в ней и претензий к ее состоянию не имеет. </br></p>
-					
-						<p style="text-align: center;">Доступ в Квартиру был предоставлен посредством электронного ключа (программного обеспечения). </br></p>
-				
-						<p>3. Гостем внесена оплата в размере {{renta.getPrice}} руб., а также сумма залога в размере {{renta.getDeposit}} руб. онлайн при заселении.</p>
-					</div>
-				</div>
+<section class="contr" id="contr">
+    <div class="container">
+      <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+        <div class="col-md-12 p-4 d-flex flex-column position-static">
+            <div class="row text-center">
+              <div class="col-md-12"><h3 class="mb-0 text-center position-relative">АКТ ПРИЕМА ПЕРЕДАЧИ ЖИЛОГО ПОМЕЩЕНИЯ</h3></div>
+              <div class="col-sm-6"><div class="text-left">г. {{renta.flat.city}}</div></div>
+              <div class="col-sm-6"><div class="text-right">«{{date.day}}» {{date|date:"F" }} {{date.year}} г.</div></div>
+              
+            </div>
+            <p class="card-text mb-auto">
+            </br>
+            {{renta.flat.partnerInfo.org_name}}, именуемая в дальнейшем Принимающая сторона, в лице {{renta.flat.partnerInfo.hmrank}} {{renta.flat.partnerInfo.headmaster}}, действующего на основании {{renta.flat.partnerInfo.document}}, с одной стороны, и {{user.get_full_name }}, именуемый в дальнейшем Гость, с другой стороны, составили настоящий Акт о следующем:
+            </br>
+            1. Принимающая сторона передала, а Гость принял {{renta.flat.rooms}} комнатную квартиру на период с {{renta.start}} по {{renta.end}}, расположенную по адресу: {{renta.flat.addressPartOne}} {{renta.flat.addressPartTwo}}, во временное владение и пользование, а также следующее имущество:
+          </br>
+          <ul>
+            {% for item in renta.flat.flatsItems%}
+            <li>{{item}}</li>
+            {%endfor%}
+        </ul>
+  
+2. Гость осмотрел Квартиру, имущество находящееся в ней и претензий к ее состоянию не имеет.
 
-			</div>
-		</div>
-		<div class="btns">
-			<button href="#" class="btn_bor" type="submit" name="cancel">Отказаться</button>
-			<button href="#" class="btn_bor" type="submit" name="open">Открыть дверь</button>
-			<button href="#" class="btn_bg" type="submit" name="pay">Подписать и оплатить {{renta.getPrice}}</button>
-		</div>
-	</div>
-</section>
+Доступ в Квартиру был предоставлен посредством электронного ключа (программного обеспечения).
+        </br>
+        3. Гостем внесена оплата в размере {{renta.getPrice}} руб., а также сумма залога в размере {{renta.getDeposit}} руб. онлайн при заселении.
+            </p>
+        </div>
+    </div>
+    <form method='POST' action="#">
+      {% csrf_token %}
+    <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+      <div class="col-md-12 d-4 d-lg-block">
+        <button type="submit" class="btn btn-lg btn-block btn-outline-secondary" name="open">Открыть дверь | {{renta.AccessObj.timeRemaining}}</button>
+      </div>
+  </div>
+    </div>
+
+    
+
+  </section>
+
+
+  <footer class="py-1 bg-dark fixed-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <button type="submit" class="btn btn-lg btn-block btn-primary" name="pay">Оплатить</button>
+            </div>
+            <div class="col-md-4 padd">
+                <button type="submit" class="btn btn-lg btn-block btn-secondary" name="cancel">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <!-- /.container -->
+  </footer>
 </form>
+{% endblock %}
+
+{% block javascript %}
 {% endblock %}

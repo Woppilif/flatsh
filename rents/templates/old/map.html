@@ -1,0 +1,153 @@
+{% extends 'body.html' %}
+{% load static %}
+
+{% block javascript %}
+<!-- Map 2GIS -->
+
+<!-- Script of Map 2GIS -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="{% static 'js/map.js' %}"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<!-- FontAwesome -->
+<script src="https://kit.fontawesome.com/230cba36d5.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/datetime.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="{% static 'css/map.css' %}">
+<!--<div class="map">
+    <div id="map" style="width:100%; height:490px"></div>
+</div>-->
+<div id="map-block">{% include 'map_part.html' %}</div>
+
+
+
+<div class="settings">
+	<div class="wrap">
+		<div class="container">
+			<div class="options">
+				<div class="row">
+					<div class="option check_in col-md-3 col-6">
+						<p>Заезд</p>
+						<span class="set">
+							<input  type="datetime-local" value="{{today}}" min="{{today}}">
+						</span>
+					</div>
+					<div class="option check_out col-md-3 col-6">
+						<p>Выезд</p>
+						<span class="set">
+							<input  type="datetime-local" value="{{tomorrow}}" min="{{today}}">
+						</span>
+					</div>
+					<div class="option price col-md-4 col-12">
+						<div class="slider_line">
+							<p>
+								<label for="amount">Цена:</label>
+								<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;" >
+							</p>
+							<div id="slider-range" onchange="changed()"></div>
+						</div>
+					</div>
+					<div class="option guests col-md-1 col-6 block3">
+						<p>Гостей</p>
+	                <div class="">
+	                    <select name="" id="">
+		                    	<option value="1">1</option>
+		                    	<option value="2">2</option>
+		                    	<option value="3">3</option>
+		                    	<option value="4">4</option>
+		                    	<option value="5">5</option>
+		                    	<option value="6">6</option>
+		                    </select>
+	                </div> 						
+					</div>
+					<div class="option radius col-md-1 col-6 block4">
+						<p>Радиус </p>
+						<div class="">
+		                    <select name="" id="">
+		                    	<option value="1">500m</option>
+		                    	<option value="2">1km</option>
+		                    	<option value="3">2km</option>
+		                    	<option value="4">3km</option>
+		                    	<option value="5">4km</option>
+		                    	<option value="6">5km</option>
+		                    </select>
+		                </div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div> 
+
+<div class="filters dis_no">
+	<div class="row">
+			<div class="block9 col-sm-4 col-12">
+                    <h5>Район </h5>
+                    <div class="">
+                        <select name="" id="">
+		                    	<option value="1">Московский</option>
+		                    	<option value="2">Советский</option>
+		                    	<option value="3">Приволжский</option>
+		                    	<option value="4">Авиастроительный</option>
+		                    	<option value="5">Кировский</option>
+		                    	<option value="6">Ново-Савиновский</option>
+		                    	<option value="7">Вахитовски</option>
+		                    </select>
+                    </div>
+            </div>
+            <div class="block10 col-sm-4 col-12">
+                    <h5>Кол-во комнат </h5>
+                    <div class="prev-input_plus_minus">
+                        <span class="inputminus"><img src="{% static 'imgs/minus.png' %}" alt=""></span>
+                        <input class="inputresult" max="9" type="text" value="1">
+                        <span class="inputplus"><img src="{% static 'imgs/plus.png' %}" alt=""></span>
+                    </div>
+            </div>
+            <div class="block11 col-sm-4 col-12">
+                    <h5>Дополнительно</h5>
+                        <input id="check1" type="checkbox" name="check" value="check1">
+                        <label for="check1">С животными</label>
+                        <input id="check2" type="checkbox" name="check" value="check2">
+                        <label for="check2">С детьми</label>
+            </div>
+	</div>
+</div>
+
+<section>
+	<div class="wrap">
+		<div class="btns btns-mar">
+				<div class="clean_filt">
+					<a href="#">Очистить фильтр</a>
+				</div>
+				<div class="back_map">
+					<a href="{% url 'rents:list' %}" class="btn_bg">Показать списком</a>
+				</div>
+				<div class="extra_filt block-8 dop_filt">
+					<a href="#">Дополнительные фильтры</a>
+				</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	$( function() {
+		$( "#slider-range" ).slider({
+			step: 500,
+			range: true,
+			min: {{min}},
+			max: {{max}},
+			values: [ {{min}}, {{max}} ],
+		slide: function( event, ui ) {
+			$( "#amount" ).val( " " + ui.values[ 0 ] + " - " + ui.values[ 1 ] + " руб/сут" );
+			}
+		});
+		$( "#amount" ).val(  $( "#slider-range" ).slider( "values", 0 ) +
+			" - " + $( "#slider-range" ).slider( "values", 1 ) + " руб/сут");
+		} 
+	);
+</script>
+{% endblock %}

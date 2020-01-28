@@ -28,7 +28,7 @@ SECRET_KEY = '&%gb#g5=4&vj^z4dzbw3-znxr2hil!@fqju)gfaxks)jgba73m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','1c8d36eb.ngrok.io']
+ALLOWED_HOSTS = ['127.0.0.1','*']
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login'
@@ -87,14 +87,33 @@ WSGI_APPLICATION = 'flatsharing.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+'''
+DATABASES = {
 
+    'default': {
+
+        'ENGINE': 'django.db.backends.mysql',
+
+        'NAME': 'flatsharing',
+
+        'USER': 'root',
+
+        'PASSWORD': '',
+
+        'HOST': '127.0.0.1', 
+
+        'PORT': '3306',
+
+    }
+
+}
 
 
 ASGI_APPLICATION = 'routing.application'

@@ -1,51 +1,165 @@
-{% extends 'body.html' %}
+{% extends 'includes/main.html' %}
 {% load static %}
-
-{% block javascript %}
-{% endblock %}
+{% block title %}Главная{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/list.css' %}">
-<section>
-	<div class="wrap">
-		<div class="list">
-			<!--<div class="spis">
-				<p>Список <span>42</span></p>
-			</div>-->
-			<div class="sort">
-				<!--<div class="sorting">
-					<span>Сортировка</span>
-					<i class="fas fa-angle-right"></i>
-				</div>-->
-				<div>
-					<a href="#" class="bl">Расстояние ближе</a>
-				</div>
-				<div>
-					<a href="{% url 'rents:list' %}?price=up">Цена по возрастанию</a>
-				</div>
-				<div>
-					<a href="{% url 'rents:list' %}?price=down">Цена по убыванию</a>
-				</div>
-			</div>
+<section class="contr" id="contr">
+      
+    <div class="container">
+        <!--<section class="filters">
+            <div class="row no-gutters rounded overflow-hidden flex-md-row shadow-sm h-md-50 position-relative">
+           <div class="col"><button class="btn btn-sm btn-block btn-outline-secondary" >Цена по возрастанию</button></div>
+           <div class="col"><button class="btn btn-sm btn-block btn-outline-primary" >Цена по убыванию</button></div>
+            </div>
+        </section> -->
+        <div id="flatsBlock">
+            {% include 'list_part.html' %}
+        </div>
+        
+        
+        
+         
+      </div>
+  </section>
 
-			{% include 'part_list.html' %}
-		</div>
-	</div>
-</section>
 
-<section class="fixed-bottom">
-	<div class="wrap">
-		<div class="btns">
-				<div class="clean_filt">
-					<a href="#">Очистить фильтр</a>
-				</div>
-				<div class="back_map">
-					<a href="{% url 'rents:map' %}" class="btn_bg">Назад к карте</a>
-				</div>
-				<div class="extra_filt">
-					<a href="#">Дополнительные фильтры</a>
-				</div>
-		</div>
-	</div>
-</section>
+  <footer class="py-1 bg-dark fixed-bottom">
+    <div class="container" id="buttbar">
+        <div class="row">
+            <div class="col-md-8">
+                <a href="{% url 'rents:map' %}" class="btn btn-lg btn-block btn-primary" id="showAsList">Назад к карте</a>
+            </div>
+            <div class="col-md-4 padd">
+                <button type="button" class="btn btn-lg btn-block btn-secondary" onclick="showFilters(1)">Фильтры</button>
+            </div>
+        </div>
+    </div>
+    <div class="container border rounded overflow-hidden flex-md-row shadow-sm" id="filters" hidden style="background-color: white;">
+        <div class="row">
+          <div class="col-lg-6 mx-auto">
+           <label for="start_date">Дата заезда</label>
+           <input type="datetime-local" class="form-control" id="start_date" value="{{today}}" min="{{today}}">
+          </div>
+          <div class="col-lg-6 mx-auto">
+            <label for="end_date">Дата выезда</label>
+            <input type="datetime-local" class="form-control" id="end_date" value="{{tomorrow}}" min="{{today}}">
+          </div>
+        </div>
+        <div class="row pt-2 ">
+          
+          <div class="col-lg-6 pt-4 pl-4 pr-4">
+            <div class="form-group">
+              <label for="amount">Цена <span id="ex6SliderVal">от {{min_val}} до {{max_val}}</span></label></br>
+              <input id="ex2" type="text" class="span2" value="" data-slider-min="{{min}}" data-slider-max="{{max}}" data-slider-step="1000" data-slider-value="[{{min_val}},{{max_val}}]"/>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <label for="rooms">Количество комнат</label>
+            <select id="rooms" class="form-control">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          
+        </div>
+        <div class="row">
+            <div class="col-lg-6 pb-2">
+                <label for="price">Сортировка</label>
+                <select id="price" class="form-control">
+                  <option value="up">По возрастанию</option>
+                  <option value="down">По убыванию</option>
+                </select>
+            </div>
+            <div class="col-lg-6">
+                <a href="{% url 'rents:list' %}">Очистить фильтры</a>
+              </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 padd">
+                <button type="button" class="btn btn-lg btn-block btn-secondary" onclick="showFilters(0)">Назад</button>
+            </div>
+        </div>
+      </div>
+    <!-- /.container -->
+  </footer>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
+<script>
+
+
+    $(document).ready(function(){ 
+        if(window.location.href.split('?').length == 2)
+      showAsList.href = "{% url 'rents:map' %}?"+window.location.href.split('?')[1];
+    })
+
+var map, markers, ddt;
+
+
+    
+DG.then(function() {
+    
+    document.getElementById('ex2').onchange = showMarkers;
+    document.getElementById('start_date').onchange = showMarkers;
+    document.getElementById('end_date').onchange = showMarkers;
+    document.getElementById('rooms').onchange = showMarkers;
+    document.getElementById('price').onchange = showMarkers;
+    //document.getElementById('price_down').onclick = showMarkers;
+
+    function showMarkers() {
+      var promise = DG.ajax('/list/', {
+        type: 'get',
+        data: {
+            min: parseInt(ex2.value.split(',')[0]),
+            max: parseInt(ex2.value.split(',')[1]),
+            start: start_date.value.substr(0,10),
+            end: end_date.value.substr(0,10),
+            rooms: rooms.value,
+            api: true,
+            price: price.value
+        },
+        success: function(data) {
+            $("#flatsBlock").html(data.html_book_list);
+        },
+        error: function(error) {
+            console.log('error', error);
+        }
+      });
+
+
+      showAsList.href = "{% url 'rents:map' %}?min="+parseInt(ex2.value.split(',')[0])+"&max="+parseInt(ex2.value.split(',')[1])+"&start="+start_date.value.substr(0,10)+"&end="+end_date.value.substr(0,10)+"&rooms="+rooms.value+""
+
+    };
+});
+
+$("#ex2").slider({});
+$("#ex2").on("load", function(){
+    $("#ex6SliderVal").text("от "+slideEvt.value[0]+" до "+slideEvt.value[1]);
+    $("#ex6SliderVal").val(slideEvt.value);
+});
+ $("#ex2").on("slide", function(slideEvt) {
+  $("#ex6SliderVal").text("от "+slideEvt.value[0]+" до "+slideEvt.value[1]);
+  $("#ex6SliderVal").val(slideEvt.value);
+});
+
+    function showFilters(param)
+    {
+        if(param == 1)
+        {
+            $("#filters").attr('hidden',false);
+            $("#buttbar").attr('hidden',true);
+        }
+        else
+        {
+            $("#filters").attr('hidden',true);
+            $("#buttbar").attr('hidden',false);
+        }
+        
+
+    }
+</script>
 {% endblock %}

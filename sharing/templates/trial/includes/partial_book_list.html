@@ -1,15 +1,32 @@
 {% for item in rents %}
 <tr {% if new == item.pk %} style="background-color: red;" {%endif%}>
-
+  <td>{{item.created_at}}
+    {% if item.trial_key is not None and item.paid is True and item.getPayments|length == 0 %}
+  </br>Оплата налчиными
+    {%endif%}
+</br> Стоимость: {{item.getPrice}}
+</br> Депозит: {{item.getDeposit}}
+  </td>
   <td>{{ item.flat.addressPartOne }} {{ item.flat.addressPartTwo }}</br><strong>{{ item.start }} - {{ item.end }}</strong></td>
   <td>
     <input type="text" value="http://ewtm.ru{{ item.get_absolute_url }}" id="renta_{{item.pk}}">
 <button onclick="myFunction('{{item.pk}}')">Копировать</button>
     </td>  
 </tr>
+{% if item.trial_key is not None and item.paid is True  and item.getPayments|length != 0 %}
+  {% for payment in item.getPayments %}
+  <tr>
+    <td colspan="3" class="text-center bg-success">{{payment}}</td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="3" class="text-center bg-warning">У данной аренды нет транзакций</td>
+  </tr>
+  {% endfor %}
+{%endif%}
 {% empty %}
 <tr>
-  <td colspan="8" class="text-center bg-warning">У вас еще нет квартир</td>
+  <td colspan="3" class="text-center bg-warning">У вас еще нет квартир</td>
 </tr>
 {% endfor %}
 
