@@ -332,6 +332,7 @@ class Rents(models.Model):
         from django.urls import reverse
         if self.trial_key is not None:
             return reverse('rents:trial_renta', args=[self.trial_key])
+        return reverse('rents:pay', args=[self.pk])
 
     def __str__(self):
         return "{0} с {1} по {2}".format(self.flat,self.start,self.end)
@@ -354,7 +355,7 @@ class Rents(models.Model):
         return Access.objects.filter(renta=self.id,user=self.rentor).last()
 
     def getDays(self):
-        days = (self.end-self.start).days
+        days = ((self.end + timedelta(hours=2))-self.start).days
         if days < 1:
             return 1
         return days

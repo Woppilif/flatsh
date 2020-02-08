@@ -39,8 +39,12 @@ class Bitx():
         self.location['city'] = data.find("locality-name").get_text(strip=True)
         self.location['address'] = data.find("address").get_text(strip=True)
         self.location['metro'] = data.find("metro").contents[0].get_text(strip=True)
-        self.location['latitude'] = data.find("latitude-longitude").get_text(strip=True).split(',')[0]
-        self.location['longitude'] = data.find("latitude-longitude").get_text(strip=True).split(',')[1]
+        coords = data.find("latitude-longitude")
+        if coords is not None:
+            coords = coords.get_text(strip=True).split(',')
+            print(coords)
+            #self.location['latitude'] = coords[0]
+            #self.location['longitude'] = coords[1]
         self.description = data.find("description").get_text(strip=True).replace("ЗАСЕЛЕНИЕ КРУГЛОСУТОЧНО!!!","")
         for i in data.find_all("image"):
             self.images.append(i.get_text(strip=True))
@@ -73,8 +77,8 @@ class Soap(object):
         flat.price = i.price
         flat.floor = i.floor
         flat.rooms = i.rooms
-        flat.latitude = i.location['latitude']
-        flat.longitude = i.location['longitude']
+        #flat.latitude = i.location['latitude']
+        #flat.longitude = i.location['longitude']
         flat.description = i.description
         flat.save()
         print(flat)
@@ -98,10 +102,11 @@ class Soap(object):
             end = timezone.make_aware(end)
             
             renta,created = Rents.renta.createRentExt(flat=flat,
+                user=User.objects.get(pk=2),
                 start=start,
                 end=end
             )
-            renta.user=User.objects.get(pk=2)
+            #renta.user=User.objects.get(pk=2)
             renta.save()
             if created is True:
                 Access.access.createPaidAccess(renta)

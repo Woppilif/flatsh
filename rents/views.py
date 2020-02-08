@@ -33,8 +33,10 @@ def checkdocs(function):
         Redirect user to booked object if he has one
     '''
     def decorator(request, *args, **kwargs):
+        '''
         if request.user.usersdocuments.firstname != "":
             return redirect('rents:card_oper')
+        '''
         return function(request, *args, **kwargs)
     return decorator
 
@@ -46,8 +48,10 @@ def checkcard(function):
         try:
             if request.user.usersdocuments.firstname == "":
                 return redirect('rents:bot')
+            '''
             if request.user.usersdocuments.yakey is None:
                 return redirect('rents:card_oper')
+            '''
         except:
             UsersDocuments.objects.create(
                 user=request.user,
@@ -195,9 +199,12 @@ def act(request,pk):
     renta = get_object_or_404(Rents, pk=pk,rentor=request.user,paid=False)
     if request.method == 'POST':
         if "pay" in request.POST:
+            return redirect('rents:pay',pk=renta.pk)
+            '''
             form = RentaPayForm(renta=renta)
             if form.is_valid():
                 return redirect('rents:opendoor',pk=form.save())
+            '''
         if "cancel" in request.POST:
             renta.status = None
             renta.save()
@@ -340,7 +347,39 @@ def card(request,code = None):
 
         return render(request, 'payment.html', data)  
 
-      
+@login_required(login_url='/accounts/login/')
+@checkdocs
+def pay(request,pk):
+    renta = get_object_or_404(Rents, pk=pk,rentor=request.user,paid=False)
+    if renta.paid is False:
+        paymentObj = Payments.objects.filter(renta=renta,payment_type = 2).first()
+        if paymentObj is not None:
+            paymentObj.setInfo(paymentObj.findOne()).setStatus().rentaPaid()
+            if paymentObj.status is True:
+                access, created = Access.access.createPaidAccess(paymentObj.renta)
+                return redirect('rents:opendoor',pk=renta.pk)
+
+        data = dict()
+        data['renta'] = renta
+        paymentObj, created = Payments.objects.get_or_create(
+            rentor = renta.rentor,
+            renta = renta,
+            price = renta.getPrice(),
+            payment_type = 2,
+            status = False,
+        )
+        if created is True:
+            paymentObj.date = timezone.make_naive(timezone.now())
+            yandex = paymentObj.createPaymentObject(capture = True, save_payment_method = False)
+            paymentObj.setInfo(yandex)
+            data['payment'] = yandex
+        else:
+            data['payment'] = paymentObj.findOne()
+        return render(request, 'pay.html',data)
+    else:
+        return redirect('rents:opendoor',pk=renta.pk)
+
+
 
 @login_required(login_url='/accounts/login/')
 @checkdocs
@@ -357,7 +396,7 @@ def bot(request):
             usr.last_name = docs.lastname
             usr.save()
             
-            return redirect('rents:card_oper')
+            return redirect('rents:map')
     else:
         form = UserDocumentsForm()
     return render(request, 'documents.html', {'form': form})
@@ -387,7 +426,7 @@ def trial_pay(request, trial_key):
             payment_type = 3,
             status = False,
         )
-        data['trial_key'] = trial_key
+        data['renta'] = renta
         if created is True:
             paymentObj.date = timezone.make_naive(timezone.now())
             yandex = paymentObj.createPaymentObject(capture = True, save_payment_method = False)

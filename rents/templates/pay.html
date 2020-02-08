@@ -15,7 +15,7 @@
 //Инициализация виджета. Все параметры обязательные.
 const checkout = new window.YandexCheckout({
     confirmation_token: '{{payment.confirmation.confirmation_token}}', //Токен, который перед проведением оплаты нужно получить от Яндекс.Кассы
-    return_url: "{%url 'rents:trial_renta' trial_key %}", //Ссылка на страницу завершения оплаты
+    return_url: "{{renta.get_absolute_url}}", //Ссылка на страницу завершения оплаты
     error_callback(error) {
         //Обработка ошибок инициализации
     }

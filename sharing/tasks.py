@@ -5,6 +5,7 @@ from celery.task.schedules import crontab
 from celery.decorators import periodic_task
 from sharing.models import Access, Payments, Rents
 from django.utils import timezone
+from rents.modules import bitx
 
 logger = get_task_logger(__name__)
 
@@ -20,7 +21,9 @@ def start_renta_task(renta,user):
     ignore_result=True
 )
 def check_current_rents():
-    print("Checkin renta....")
-        
+    soap = bitx.Soap()
+    data = soap.getAll()
+    for i in data:
+        r = soap.parse_data(i)
     logger.info("Checkin renta....")
     

@@ -22,6 +22,7 @@ urlpatterns = [
     path('card/<uuid:code>', views.card, name='card'),
     path('bot/', views.bot, name='bot'),
     path('access/', views.access, name='access'),
+    path('renta/<int:pk>/pay', views.pay, name='pay'),
     path('trial/<uuid:trial_key>/pay', views.trial_pay, name='trial_pay'),
     path('trial/<uuid:trial_key>', views.trial_renta, name='trial_renta'),
     path('trial_open/<uuid:trial_key>', views.trial_access, name='trial_access'),

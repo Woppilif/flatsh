@@ -3,7 +3,7 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-<section class="contr" id="contr">
+<section class="contr" id="contr" onload="checkDays()">
       
     <div class="container">
         
@@ -66,7 +66,7 @@
       </div>
       <div class="col-md-6 pt-4 pl-4 pr-4">
         <div class="form-group">
-          <label for="id_end">Количество дней: <strong id="daysCount">1 из {{untill}}</strong></label>
+          <label for="id_end">Количество дней: <strong id="daysCount" >1 из {{untill}}</strong></label>
           <input type="range" class="custom-range" min="1" max="{{untill}}" step="1" value="1" name="end" id="id_end" onchange="changeval()">
         </div>
       </div>
@@ -84,7 +84,7 @@
             <div class="col-md-8">
               
                 
-                <button type="submit" class="btn btn-lg btn-block btn-primary" id="continue">Забронировать</button>
+                <button type="submit" class="btn btn-lg btn-block btn-primary" id="continue">Забронировать {{flat.price}}₽</button>
                 </form>
             </div>
             <div class="col-md-4 padd">
@@ -99,11 +99,19 @@
 {% block javascript %}
 
 <script>
+  $(function() {
+    if (parseInt(data['days']) == 0)
+        {
+          $( "#continue" ).attr('disabled',true);
+          $("#daysCount").text("На указанную дату заселения нет свободных дней");
+        }
+   });
+
   var ttime = new Date("{{today}}"+"Z");
+  var price = parseFloat({{flat.price}});
   function changeval()
   {
     $("#daysCount").text(""+$("#id_end").val()+" из "+id_end.max+"");
-
   }
 
   function addDays(date, days) {
@@ -114,6 +122,7 @@
 
   function checkDays()
   {
+    console.log("ok");
     var specialday = parseInt($( "#specialday" ).val());
     if(specialday == 3)
     {
@@ -143,6 +152,7 @@
         if (parseInt(data['days']) == 0)
         {
           $( "#continue" ).attr('disabled',true);
+          $("#daysCount").text("На указанную дату заселения нет свободных дней");
         }
         else
         {

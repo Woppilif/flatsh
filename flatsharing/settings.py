@@ -36,6 +36,7 @@ LOGOUT_REDIRECT_URL = '/accounts/login'
 # Application definition
 
 INSTALLED_APPS = [
+    'sprache.apps.SpracheConfig',
     'rents.apps.RentsConfig',
     #'user.apps.UserConfig',
     #'projects.apps.ProjectsConfig',
@@ -67,6 +68,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
+            os.path.join(BASE_DIR, 'sprache/templates'),
             os.path.join(BASE_DIR, 'sharing/templates'),
             os.path.join(BASE_DIR, 'rents/templates')
         ],
